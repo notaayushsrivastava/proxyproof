@@ -65,3 +65,10 @@ def health_check(db: Session = Depends(get_db)):
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Database connection unavailable",
         )
+
+
+# Include Versioned API Routers
+from backend.app.api.v1.api import api_router
+
+app.include_router(api_router, prefix=settings.API_V1_STR)
+

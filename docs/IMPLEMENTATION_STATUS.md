@@ -12,8 +12,9 @@
 | **Repository & Dependencies** | **Complete** | Node/npm (610 packages), Expo SDK 57, Python 3.12/3.15 venv (`FastAPI`, `SQLAlchemy`, `Alembic`, `Psycopg3`, `Argon2`, `PyJWT`, `pytest`) | Ready for implementation |
 | **Docker & Database** | **Complete** | `docker-compose.yml` (PostgreSQL 17 Alpine + API), `.env.example`, `backend/Dockerfile`, database is healthy and running | Launch API container or run local dev server |
 | **BLE Protocol Spike** | **Complete** | `BLE_PROTOCOL.md` and `ARCHITECTURE.md` documented; `BeaconAdapter` interface, `MockBeaconAdapter`, RSSI aggregator, and rotating HMAC proof verified across TypeScript and Python | Native dev build spike on physical devices |
-| **Backend Schema & Migrations** | **Complete** | SQLAlchemy 2.x models, Alembic migrations applied, PostgreSQL partial unique device index verified, seed data created, health endpoints operational | Ready for Milestone 3 (Auth, Roles, Device Queue) |
-| **Mobile Screens & UI** | **Pending** | Expo Router base template verified with TypeScript & lint | Milestone 3 & 5 implementation |
+| **Backend Schema & Migrations** | **Complete** | SQLAlchemy 2.x models, Alembic migrations applied, PostgreSQL partial unique device index verified, seed data created, health endpoints operational | Ready for Milestone 4 |
+| **Auth, Roles & Devices** | **Complete** | Login & Argon2id auth, role dependencies, first-device auto-activation, one-active-device constraint, device change approval queue, classes & rosters, audit logs | Ready for Milestone 4 (Sessions & Attendance Validation) |
+| **Mobile Screens & UI** | **Pending** | Expo Router base template verified with TypeScript & lint | Milestone 5 implementation |
 
 ---
 
@@ -29,7 +30,7 @@
 | M1.3 | BeaconAdapter & Mock Engine | **In Progress** | TypeScript adapter and deterministic mock harness |
 | M1.4 | Physical Device Spike Matrix | **Untested** | Physical test matrix recorded; requires physical device build |
 | M2.1 | PostgreSQL Schema & Migrations | **Verified** | Migrations applied on PostgreSQL 17, constraints & seed verified |
-| M3.1 | Auth, Roles & Device Binding | **Pending** | Milestone 3 |
+| M3.1 | Auth, Roles & Device Binding | **Verified** | Argon2id login, device registration, change requests, approvals, rosters, and audit logs |
 | M4.1 | Sessions & Attendance Engine | **Pending** | Milestone 4 |
 | M5.1 | Mobile UI & Live Dashboard | **Pending** | Milestone 5 |
 | M6.1 | End-to-End Tests & Hardening | **Pending** | Milestone 6 |
