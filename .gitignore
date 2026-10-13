@@ -1,0 +1,31 @@
+*/.git/*
+skills-lock.json
+PRD.md
+.agents
+
+# Environment & Secrets
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+backend/.venv/
+.venv/
+env/
+venv/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Logs & Databases
+*.log
+postgres_data/
+
+# OS
+.DS_Store
+Thumbs.db

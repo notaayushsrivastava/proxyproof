@@ -1,0 +1,52 @@
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: proxyproof_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-proxyproof}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-proxyproof}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: proxyproof_api
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://postgres:postgres@db:5432/proxyproof}
+      SECRET_KEY: ${SECRET_KEY:-dev_insecure_secret_key_change_in_production_32chars}
+      ALGORITHM: ${ALGORITHM:-HS256}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-30}
+      REFRESH_TOKEN_EXPIRE_DAYS: ${REFRESH_TOKEN_EXPIRE_DAYS:-7}
+      PROTOCOL_VERSION: ${PROTOCOL_VERSION:-1}
+      PROOF_VALIDITY_SECONDS: ${PROOF_VALIDITY_SECONDS:-5}
+      DRIFT_WINDOW_SLOTS: ${DRIFT_WINDOW_SLOTS:-1}
+      DEFAULT_RSSI_THRESHOLD: ${DEFAULT_RSSI_THRESHOLD:--75}
+      MIN_RSSI_SAMPLES: ${MIN_RSSI_SAMPLES:-3}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:8081,http://localhost:8000,http://localhost:3000}
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+    ports:
+      - "127.0.0.1:8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/api/v1/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  postgres_data:
+    name: proxyproof_postgres_data
