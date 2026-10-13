@@ -1,98 +1,249 @@
-import * as Device from 'expo-device';
-import { Platform, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ActivityIndicator,
+  Pressable,
+  SafeAreaView,
+} from 'react-native';
+import { useAuth } from '../store/auth';
+import { Header } from '../components/Header';
+import { LoginView } from '../components/LoginView';
+import { StudentHomeView } from '../components/StudentHomeView';
+import { StudentClassesView } from '../components/StudentClassesView';
+import { StudentDeviceView } from '../components/StudentDeviceView';
+import { OrganizerLiveSessionView } from '../components/OrganizerLiveSessionView';
+import { OrganizerClassesView } from '../components/OrganizerClassesView';
+import { OrganizerHistoryView } from '../components/OrganizerHistoryView';
+import { AdminOverviewView } from '../components/AdminOverviewView';
+import { AdminDeviceQueueView } from '../components/AdminDeviceQueueView';
+import { AdminAuditLogsView } from '../components/AdminAuditLogsView';
 
-import { AnimatedIcon } from '@/components/animated-icon';
-import { HintRow } from '@/components/hint-row';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+type StudentTab = 'scanner' | 'classes' | 'device';
+type OrganizerTab = 'live' | 'classes' | 'history';
+type AdminTab = 'overview' | 'queue' | 'audit';
 
-function getDevMenuHint() {
-  if (Platform.OS === 'web') {
-    return <ThemedText type="small">use browser devtools</ThemedText>;
-  }
-  if (Device.isDevice) {
+export default function AppEntry() {
+  const { user, isAuthenticated, isLoading } = useAuth();
+
+  const [studentTab, setStudentTab] = useState<StudentTab>('scanner');
+  const [organizerTab, setOrganizerTab] = useState<OrganizerTab>('live');
+  const [adminTab, setAdminTab] = useState<AdminTab>('overview');
+
+  if (isLoading) {
     return (
-      <ThemedText type="small">
-        shake device or press <ThemedText type="code">m</ThemedText> in terminal
-      </ThemedText>
+      <View style={styles.centerContainer}>
+        <ActivityIndicator size="large" color="#2563eb" />
+        <Text style={styles.loadingText}>Initializing ProxyProof...</Text>
+      </View>
     );
   }
-  const shortcut = Platform.OS === 'android' ? 'cmd+m (or ctrl+m)' : 'cmd+d';
+
+  if (!isAuthenticated || !user) {
+    return <LoginView />;
+  }
+
   return (
-    <ThemedText type="small">
-      press <ThemedText type="code">{shortcut}</ThemedText>
-    </ThemedText>
-  );
-}
+    <SafeAreaView style={styles.safeArea}>
+      <Header title="ProxyProof" />
 
-export default function HomeScreen() {
-  return (
-    <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ThemedView style={styles.heroSection}>
-          <AnimatedIcon />
-          <ThemedText type="title" style={styles.title}>
-            Welcome to&nbsp;Expo
-          </ThemedText>
-        </ThemedView>
+      {/* Role Navigation Bar */}
+      <View style={styles.navBar}>
+        {user.role === 'student' && (
+          <View style={styles.tabGroup}>
+            <Pressable
+              style={[styles.tabButton, studentTab === 'scanner' && styles.tabButtonActive]}
+              onPress={() => setStudentTab('scanner')}
+            >
+              <Text
+                style={[styles.tabText, studentTab === 'scanner' && styles.tabTextActive]}
+              >
+                📡 Scan
+              </Text>
+            </Pressable>
+            <Pressable
+              style={[styles.tabButton, studentTab === 'classes' && styles.tabButtonActive]}
+              onPress={() => setStudentTab('classes')}
+            >
+              <Text
+                style={[styles.tabText, studentTab === 'classes' && styles.tabTextActive]}
+              >
+                📚 Classes
+              </Text>
+            </Pressable>
+            <Pressable
+              style={[styles.tabButton, studentTab === 'device' && styles.tabButtonActive]}
+              onPress={() => setStudentTab('device')}
+            >
+              <Text
+                style={[styles.tabText, studentTab === 'device' && styles.tabTextActive]}
+              >
+                📱 Device
+              </Text>
+            </Pressable>
+          </View>
+        )}
 
-        <ThemedText type="code" style={styles.code}>
-          get started
-        </ThemedText>
+        {user.role === 'organizer' && (
+          <View style={styles.tabGroup}>
+            <Pressable
+              style={[styles.tabButton, organizerTab === 'live' && styles.tabButtonActive]}
+              onPress={() => setOrganizerTab('live')}
+            >
+              <Text
+                style={[styles.tabText, organizerTab === 'live' && styles.tabTextActive]}
+              >
+                ⚡ Live Session
+              </Text>
+            </Pressable>
+            <Pressable
+              style={[styles.tabButton, organizerTab === 'classes' && styles.tabButtonActive]}
+              onPress={() => setOrganizerTab('classes')}
+            >
+              <Text
+                style={[styles.tabText, organizerTab === 'classes' && styles.tabTextActive]}
+              >
+                👥 Rosters
+              </Text>
+            </Pressable>
+            <Pressable
+              style={[styles.tabButton, organizerTab === 'history' && styles.tabButtonActive]}
+              onPress={() => setOrganizerTab('history')}
+            >
+              <Text
+                style={[styles.tabText, organizerTab === 'history' && styles.tabTextActive]}
+              >
+                📊 Exports
+              </Text>
+            </Pressable>
+          </View>
+        )}
 
-        <ThemedView type="backgroundElement" style={styles.stepContainer}>
-          <HintRow
-            title="Try editing"
-            hint={<ThemedText type="code">src/app/index.tsx</ThemedText>}
-          />
-          <HintRow title="Dev tools" hint={getDevMenuHint()} />
-          <HintRow
-            title="Fresh start"
-            hint={<ThemedText type="code">npm run reset-project</ThemedText>}
-          />
-        </ThemedView>
+        {user.role === 'admin' && (
+          <View style={styles.tabGroup}>
+            <Pressable
+              style={[styles.tabButton, adminTab === 'overview' && styles.tabButtonActive]}
+              onPress={() => setAdminTab('overview')}
+            >
+              <Text
+                style={[styles.tabText, adminTab === 'overview' && styles.tabTextActive]}
+              >
+                🏛️ Overview
+              </Text>
+            </Pressable>
+            <Pressable
+              style={[styles.tabButton, adminTab === 'queue' && styles.tabButtonActive]}
+              onPress={() => setAdminTab('queue')}
+            >
+              <Text
+                style={[styles.tabText, adminTab === 'queue' && styles.tabTextActive]}
+              >
+                🛡️ Device Queue
+              </Text>
+            </Pressable>
+            <Pressable
+              style={[styles.tabButton, adminTab === 'audit' && styles.tabButtonActive]}
+              onPress={() => setAdminTab('audit')}
+            >
+              <Text
+                style={[styles.tabText, adminTab === 'audit' && styles.tabTextActive]}
+              >
+                📜 Audit Logs
+              </Text>
+            </Pressable>
+          </View>
+        )}
+      </View>
 
-        {Platform.OS === 'web' && <WebBadge />}
-      </SafeAreaView>
-    </ThemedView>
+      {/* Screen Body */}
+      <View style={styles.mainContent}>
+        {user.role === 'student' && (
+          <>
+            {studentTab === 'scanner' && <StudentHomeView />}
+            {studentTab === 'classes' && <StudentClassesView />}
+            {studentTab === 'device' && <StudentDeviceView />}
+          </>
+        )}
+
+        {user.role === 'organizer' && (
+          <>
+            {organizerTab === 'live' && <OrganizerLiveSessionView />}
+            {organizerTab === 'classes' && <OrganizerClassesView />}
+            {organizerTab === 'history' && <OrganizerHistoryView />}
+          </>
+        )}
+
+        {user.role === 'admin' && (
+          <>
+            {adminTab === 'overview' && <AdminOverviewView />}
+            {adminTab === 'queue' && <AdminDeviceQueueView />}
+            {adminTab === 'audit' && <AdminAuditLogsView />}
+          </>
+        )}
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    flexDirection: 'row',
-  },
   safeArea: {
     flex: 1,
-    paddingHorizontal: Spacing.four,
-    alignItems: 'center',
-    gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
-    maxWidth: MaxContentWidth,
+    backgroundColor: '#ffffff',
   },
-  heroSection: {
-    alignItems: 'center',
-    justifyContent: 'center',
+  centerContainer: {
     flex: 1,
-    paddingHorizontal: Spacing.four,
-    gap: Spacing.four,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f9fafb',
+    gap: 12,
   },
-  title: {
-    textAlign: 'center',
+  loadingText: {
+    fontSize: 14,
+    color: '#6b7280',
+    fontWeight: '500',
   },
-  code: {
-    textTransform: 'uppercase',
+  navBar: {
+    backgroundColor: '#ffffff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
   },
-  stepContainer: {
-    gap: Spacing.three,
-    alignSelf: 'stretch',
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.four,
-    borderRadius: Spacing.four,
+  tabGroup: {
+    flexDirection: 'row',
+    maxWidth: 640,
+    width: '100%',
+    alignSelf: 'center',
+    backgroundColor: '#f3f4f6',
+    borderRadius: 8,
+    padding: 3,
+  },
+  tabButton: {
+    flex: 1,
+    paddingVertical: 8,
+    alignItems: 'center',
+    borderRadius: 6,
+  },
+  tabButtonActive: {
+    backgroundColor: '#ffffff',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  tabText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#6b7280',
+  },
+  tabTextActive: {
+    color: '#1d4ed8',
+    fontWeight: '700',
+  },
+  mainContent: {
+    flex: 1,
+    backgroundColor: '#f9fafb',
   },
 });

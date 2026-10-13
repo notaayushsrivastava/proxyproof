@@ -1,5 +1,3 @@
-import * as Crypto from 'expo-crypto';
-
 export const PROTOCOL_VERSION = 1;
 export const DEFAULT_PROOF_VALIDITY_SECONDS = 5;
 
@@ -32,6 +30,23 @@ function bytesToHex(bytes: Uint8Array): string {
   return Array.from(bytes)
     .map((b) => b.toString(16).padStart(2, '0'))
     .join('');
+}
+
+async function sha256Bytes(data: Uint8Array): Promise<Uint8Array> {
+  if (typeof globalThis.crypto?.subtle !== 'undefined') {
+    const buf = await globalThis.crypto.subtle.digest(
+      'SHA-256',
+      data as unknown as BufferSource
+    );
+    return new Uint8Array(buf);
+  }
+  const Crypto = await import('expo-crypto');
+  const hex = await Crypto.digestStringAsync(
+    Crypto.CryptoDigestAlgorithm.SHA256,
+    bytesToHex(data),
+    { encoding: Crypto.CryptoEncoding.HEX }
+  );
+  return hexToBytes(hex);
 }
 
 /**
@@ -69,12 +84,8 @@ export async function computeHmacSha256(
   let k = new Uint8Array(blockSize);
 
   if (keyBytes.length > blockSize) {
-    const keyHashHex = await Crypto.digestStringAsync(
-      Crypto.CryptoDigestAlgorithm.SHA256,
-      bytesToHex(keyBytes),
-      { encoding: Crypto.CryptoEncoding.HEX }
-    );
-    k.set(hexToBytes(keyHashHex));
+    const keyHashBytes = await sha256Bytes(keyBytes);
+    k.set(keyHashBytes);
   } else {
     k.set(keyBytes);
   }
@@ -92,23 +103,15 @@ export async function computeHmacSha256(
   innerConcat.set(iKeyPad, 0);
   innerConcat.set(messageBytes, blockSize);
 
-  const innerHashHex = await Crypto.digestStringAsync(
-    Crypto.CryptoDigestAlgorithm.SHA256,
-    bytesToHex(innerConcat),
-    { encoding: Crypto.CryptoEncoding.HEX }
-  );
-  const innerHashBytes = hexToBytes(innerHashHex);
+  const innerHashBytes = await sha256Bytes(innerConcat);
 
   // Outer hash: H(oKeyPad || innerHash)
   const outerConcat = new Uint8Array(blockSize + innerHashBytes.length);
   outerConcat.set(oKeyPad, 0);
   outerConcat.set(innerHashBytes, blockSize);
 
-  return Crypto.digestStringAsync(
-    Crypto.CryptoDigestAlgorithm.SHA256,
-    bytesToHex(outerConcat),
-    { encoding: Crypto.CryptoEncoding.HEX }
-  );
+  const outerHashBytes = await sha256Bytes(outerConcat);
+  return bytesToHex(outerHashBytes);
 }
 
 /**

@@ -65,15 +65,31 @@ def test_get_current_user_profile(client: TestClient):
     assert response.json()["email"] == "student1@proxyproof.local"
 
 
-def test_device_registration_and_change_approval_flow(client: TestClient):
+def test_device_registration_and_change_approval_flow(client: TestClient, db_session: Session):
     """
     Comprehensive test of device registration policy and admin approval queue:
-    1. Student3 (no active device initially) registers device -> auto-activated.
-    2. Student3 registers a 2nd device -> registered as PENDING.
-    3. Student3 files device change request.
+    1. Fresh Student (no active device initially) registers device -> auto-activated.
+    2. Fresh Student registers a 2nd device -> registered as PENDING.
+    3. Fresh Student files device change request.
     4. Admin approves request -> new device ACTIVE, old device REVOKED.
     """
-    token_student3 = get_token(client, "student3@proxyproof.local")
+    from backend.app.models.user import User
+    from backend.app.models.enums import UserRole, AccountStatus
+    from backend.app.core.security import hash_password
+
+    unique_email = f"device_flow_{uuid.uuid4().hex[:6]}@proxyproof.local"
+    fresh_student = User(
+        id=uuid.uuid4(),
+        email=unique_email,
+        password_hash=hash_password(DEFAULT_DEV_PASSWORD),
+        role=UserRole.STUDENT,
+        full_name="Device Flow Student",
+        account_status=AccountStatus.ACTIVE,
+    )
+    db_session.add(fresh_student)
+    db_session.commit()
+
+    token_student3 = get_token(client, unique_email)
     token_admin = get_token(client, "admin@proxyproof.local")
 
     # 1. First device -> should be auto-activated

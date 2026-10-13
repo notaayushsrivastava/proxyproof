@@ -135,12 +135,13 @@ def approve_device_change(
 
     now = datetime.now(timezone.utc)
 
-    # 1. Revoke old device if present
+    # 1. Revoke old device if present and flush immediately to free the partial unique index
     if change_req.old_device_id:
         old_device = db.query(Device).filter(Device.id == change_req.old_device_id).first()
         if old_device:
             old_device.status = DeviceStatus.REVOKED
             old_device.revoked_at = now
+            db.flush()
 
     # 2. Activate new device
     new_device = db.query(Device).filter(Device.id == change_req.new_device_id).first()
@@ -148,6 +149,7 @@ def approve_device_change(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Target device not found")
     new_device.status = DeviceStatus.ACTIVE
     new_device.revoked_at = None
+    db.flush()
 
     # 3. Update request
     change_req.status = DeviceRequestStatus.APPROVED

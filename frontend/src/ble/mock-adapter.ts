@@ -30,6 +30,13 @@ export class MockBeaconAdapter implements BeaconAdapter {
   public simulatedRSSIJitter = 4; // +/- 4 dBm noise
   public simulatedSlotLag = 0; // Simulate clock drift if needed
 
+  public setSimulatedSession(sessionId: string, sessionSecret?: string) {
+    this.advertisingSessionId = sessionId;
+    if (sessionSecret) {
+      this.advertisingSecret = sessionSecret;
+    }
+  }
+
   async initialize(): Promise<AdapterState> {
     this.updateState('ready');
     return this.state;

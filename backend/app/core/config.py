@@ -24,6 +24,28 @@ class Settings(BaseSettings):
     POSTGRES_HOST: str = "127.0.0.1"
     POSTGRES_PORT: int = 5432
 
+    @field_validator("DATABASE_URL", mode="after")
+    @classmethod
+    def resolve_database_url_host(cls, v: str) -> str:
+        if "@db:" in v:
+            import socket
+            try:
+                socket.gethostbyname("db")
+            except Exception:
+                return v.replace("@db:", "@127.0.0.1:")
+        return v
+
+    @field_validator("POSTGRES_HOST", mode="after")
+    @classmethod
+    def resolve_postgres_host(cls, v: str) -> str:
+        if v == "db":
+            import socket
+            try:
+                socket.gethostbyname("db")
+            except Exception:
+                return "127.0.0.1"
+        return v
+
     # JWT & Auth
     SECRET_KEY: str = "dev_insecure_secret_key_change_in_production_32chars"
     ALGORITHM: str = "HS256"
