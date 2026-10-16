@@ -11,6 +11,13 @@ import {
   Linking,
   Platform,
 } from 'react-native';
+import {
+  Radio,
+  UserPlus,
+  Download,
+  StopCircle,
+  Trash2,
+} from 'lucide-react-native';
 import { getBeaconAdapter } from '../ble';
 import { api } from '../services/api';
 import { SessionWebSocketClient } from '../services/websocket';
@@ -209,13 +216,20 @@ export function OrganizerLiveSessionView() {
 
     try {
       const res = await api.createSession(selectedClassId, durationMinutes, sessionNotes);
-      setActiveSession(res.session);
+      const sessionObj = res.session || res;
+      const secret = res.beacon_secret || res.session_secret || '';
+
+      if (!sessionObj || !sessionObj.id) {
+        throw new Error('Server returned an invalid session response without an ID.');
+      }
+
+      setActiveSession(sessionObj);
 
       // Start BLE Advertising with beacon secret
-      const started = await adapter.startAdvertising(res.session.id, res.beacon_secret);
+      const started = await adapter.startAdvertising(sessionObj.id, secret);
       setIsAdvertisingActive(started);
 
-      await loadSessionDetails(res.session);
+      await loadSessionDetails(sessionObj);
     } catch (err: unknown) {
       const e = err as Error;
       setStartError(e.message || 'Failed to start session');
@@ -329,12 +343,12 @@ export function OrganizerLiveSessionView() {
         <>
           <View style={styles.card}>
             <View style={styles.sessionHeaderRow}>
-              <View>
+              <View style={styles.sessionTitleGroup}>
                 <Text style={styles.activeLabel}>ACTIVE ATTENDANCE SESSION</Text>
-                <Text style={styles.sessionClassName}>
+                <Text style={styles.sessionClassName} numberOfLines={1} ellipsizeMode="tail">
                   {activeSession.class_name || 'Class Session'}
                 </Text>
-                <Text style={styles.sessionClassCode}>{activeSession.class_code}</Text>
+                <Text style={styles.sessionClassCode} numberOfLines={1}>{activeSession.class_code}</Text>
               </View>
 
               <View style={styles.timerBox}>
@@ -347,7 +361,7 @@ export function OrganizerLiveSessionView() {
             <View style={styles.statusBanners}>
               <View style={styles.statusBadge}>
                 <View style={styles.dotGreen} />
-                <Text style={styles.statusBadgeText}>Session active on server</Text>
+                <Text style={styles.statusBadgeText}>Attendance session active on campus network</Text>
               </View>
               <View
                 style={[
@@ -360,8 +374,8 @@ export function OrganizerLiveSessionView() {
                 />
                 <Text style={styles.statusBadgeText}>
                   {isAdvertisingActive
-                    ? 'BLE advertising active on this phone'
-                    : 'BLE advertising stopped / pending'}
+                    ? 'Bluetooth check-in signal broadcasting'
+                    : 'Check-in signal paused or standby'}
                 </Text>
               </View>
             </View>
@@ -391,13 +405,15 @@ export function OrganizerLiveSessionView() {
                 style={({ pressed }) => [styles.actionBtn, pressed && styles.pressed]}
                 onPress={() => setIsManualModalOpen(true)}
               >
-                <Text style={styles.actionBtnText}>+ Manual Add</Text>
+                <UserPlus size={14} color="#007AFF" strokeWidth={2.2} />
+                <Text style={styles.actionBtnText}>Manual Add</Text>
               </Pressable>
 
               <Pressable
                 style={({ pressed }) => [styles.actionBtn, pressed && styles.pressed]}
                 onPress={handleExportCsv}
               >
+                <Download size={14} color="#007AFF" strokeWidth={2.2} />
                 <Text style={styles.actionBtnText}>Export CSV</Text>
               </Pressable>
 
@@ -413,7 +429,10 @@ export function OrganizerLiveSessionView() {
                 {isClosing ? (
                   <ActivityIndicator size="small" color="#ffffff" />
                 ) : (
-                  <Text style={styles.closeBtnText}>End Session</Text>
+                  <>
+                    <StopCircle size={15} color="#ffffff" strokeWidth={2.2} />
+                    <Text style={styles.closeBtnText}>End Session</Text>
+                  </>
                 )}
               </Pressable>
             </View>
@@ -479,6 +498,7 @@ export function OrganizerLiveSessionView() {
                           setIsRemoveModalOpen(true);
                         }}
                       >
+                        <Trash2 size={13} color="#FF3B30" strokeWidth={2.2} />
                         <Text style={styles.removeLinkText}>Remove</Text>
                       </Pressable>
                     </View>
@@ -493,8 +513,8 @@ export function OrganizerLiveSessionView() {
         <View style={styles.card}>
           <Text style={styles.screenTitle}>Start Attendance Session</Text>
           <Text style={styles.cardDesc}>
-            Initiate a time-bounded attendance window. Your phone will broadcast rotating
-            cryptographic HMAC proofs over BLE for nearby enrolled students to capture.
+            Open an attendance window for your class. Your phone broadcasts a secure signal so
+            enrolled students physically present in the room can check in automatically.
           </Text>
 
           {startError && (
@@ -524,6 +544,8 @@ export function OrganizerLiveSessionView() {
                             styles.classChipText,
                             isSelected && styles.classChipTextSelected,
                           ]}
+                          numberOfLines={1}
+                          ellipsizeMode="tail"
                         >
                           {cls.code} - {cls.name}
                         </Text>
@@ -583,7 +605,10 @@ export function OrganizerLiveSessionView() {
                 {isStarting ? (
                   <ActivityIndicator color="#ffffff" size="small" />
                 ) : (
-                  <Text style={styles.startBtnText}>Broadcast & Start Session</Text>
+                  <>
+                    <Radio size={16} color="#ffffff" strokeWidth={2.4} />
+                    <Text style={styles.startBtnText}>Broadcast & Start Session</Text>
+                  </>
                 )}
               </Pressable>
             </>
@@ -737,263 +762,279 @@ export function OrganizerLiveSessionView() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9fafb',
+    backgroundColor: '#F2F2F7',
   },
   content: {
     padding: 16,
     gap: 16,
-    maxWidth: 640,
+    maxWidth: 600,
     width: '100%',
     alignSelf: 'center',
   },
   card: {
-    backgroundColor: '#ffffff',
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 18,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(0, 0, 0, 0.08)',
     shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 10,
+    elevation: 2,
   },
   screenTitle: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: '700',
-    color: '#111827',
+    color: '#000000',
+    letterSpacing: -0.5,
     marginBottom: 4,
   },
   cardTitle: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '700',
-    color: '#111827',
+    color: '#000000',
+    letterSpacing: -0.4,
   },
   cardDesc: {
     fontSize: 13,
-    color: '#6b7280',
+    color: '#8E8E93',
     lineHeight: 18,
     marginBottom: 16,
   },
   sessionHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 12,
+    alignItems: 'center',
+    marginBottom: 14,
+  },
+  sessionTitleGroup: {
+    flex: 1,
+    marginRight: 12,
+    minWidth: 0,
   },
   activeLabel: {
     fontSize: 10,
-    fontWeight: '800',
-    color: '#2563eb',
-    letterSpacing: 0.5,
+    fontWeight: '700',
+    color: '#007AFF',
+    letterSpacing: 0.6,
   },
   sessionClassName: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '700',
-    color: '#111827',
+    color: '#000000',
+    letterSpacing: -0.4,
     marginTop: 2,
   },
   sessionClassCode: {
-    fontSize: 12,
-    color: '#6b7280',
+    fontSize: 13,
+    color: '#8E8E93',
   },
   timerBox: {
-    backgroundColor: '#eff6ff',
-    borderWidth: 1,
-    borderColor: '#bfdbfe',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    backgroundColor: 'rgba(0, 122, 255, 0.08)',
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
     alignItems: 'center',
   },
   timerValue: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: '#1d4ed8',
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#007AFF',
     fontFamily: 'monospace',
+    letterSpacing: -0.5,
   },
   timerLabel: {
     fontSize: 9,
     fontWeight: '700',
-    color: '#3b82f6',
-    letterSpacing: 0.5,
+    color: '#007AFF',
+    letterSpacing: 0.6,
   },
   statusBanners: {
-    gap: 6,
+    gap: 8,
     marginBottom: 16,
   },
   statusBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f0fdf4',
-    borderWidth: 1,
-    borderColor: '#bbf7d0',
-    borderRadius: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
+    backgroundColor: 'rgba(52, 199, 89, 0.1)',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
     gap: 8,
   },
   statusBadgeWarning: {
-    backgroundColor: '#fffbeb',
-    borderColor: '#fde68a',
+    backgroundColor: 'rgba(255, 149, 0, 0.1)',
   },
   dotGreen: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#16a34a',
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
+    backgroundColor: '#34C759',
   },
   dotOrange: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#d97706',
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
+    backgroundColor: '#FF9500',
   },
   statusBadgeText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#1f2937',
+    color: '#1C1C1E',
   },
   metricsRow: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingVertical: 12,
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: '#f3f4f6',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 14,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderColor: '#E5E5EA',
     marginBottom: 16,
   },
   metricItem: {
+    flex: 1,
     alignItems: 'center',
   },
   metricBig: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: '#111827',
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#000000',
+    letterSpacing: -0.8,
   },
   metricSub: {
     fontSize: 11,
-    color: '#6b7280',
-    marginTop: 2,
+    color: '#8E8E93',
+    marginTop: 3,
+    fontWeight: '500',
   },
   actionsBar: {
     flexDirection: 'row',
-    gap: 8,
+    gap: 10,
   },
   actionBtn: {
     flex: 1,
-    height: 38,
-    backgroundColor: '#f3f4f6',
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: '#d1d5db',
+    height: 42,
+    flexDirection: 'row',
+    gap: 6,
+    backgroundColor: '#E5E5EA',
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
   },
   actionBtnText: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '600',
-    color: '#374151',
+    color: '#007AFF',
   },
   closeBtn: {
     flex: 1,
-    height: 38,
-    backgroundColor: '#dc2626',
-    borderRadius: 6,
+    height: 42,
+    flexDirection: 'row',
+    gap: 6,
+    backgroundColor: '#FF3B30',
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
   },
   closeBtnText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#ffffff',
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    letterSpacing: -0.2,
   },
   listHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 10,
   },
   countText: {
-    fontSize: 12,
-    color: '#6b7280',
+    fontSize: 13,
+    color: '#8E8E93',
   },
   searchInput: {
-    height: 38,
-    backgroundColor: '#f9fafb',
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    borderRadius: 6,
-    paddingHorizontal: 10,
-    fontSize: 13,
-    color: '#111827',
+    height: 42,
+    backgroundColor: '#E5E5EA',
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    fontSize: 14,
+    color: '#000000',
     marginBottom: 12,
   },
   studentRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
+    paddingVertical: 12,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#E5E5EA',
   },
   studentInfo: {
     gap: 2,
+    flex: 1,
   },
   studentName: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#111827',
+    color: '#000000',
+    letterSpacing: -0.2,
   },
   studentNumber: {
     fontSize: 12,
-    color: '#6b7280',
+    color: '#8E8E93',
   },
   studentTime: {
     fontSize: 11,
-    color: '#9ca3af',
+    color: '#8E8E93',
   },
   studentRight: {
     alignItems: 'flex-end',
     gap: 4,
   },
   sourcePill: {
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
   },
   sourceBle: {
-    backgroundColor: '#e0f2fe',
+    backgroundColor: 'rgba(0, 122, 255, 0.12)',
   },
   sourceManual: {
-    backgroundColor: '#fef3c7',
+    backgroundColor: 'rgba(255, 149, 0, 0.12)',
   },
   sourcePillText: {
     fontSize: 10,
     fontWeight: '700',
+    letterSpacing: 0.3,
   },
   textBle: {
-    color: '#0369a1',
+    color: '#007AFF',
   },
   textManual: {
-    color: '#b45309',
+    color: '#FF9500',
   },
   removeLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
     paddingVertical: 2,
   },
   removeLinkText: {
     fontSize: 11,
-    color: '#dc2626',
+    color: '#FF3B30',
     fontWeight: '600',
   },
   formGroup: {
-    marginBottom: 14,
+    marginBottom: 16,
   },
   formLabel: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#374151',
-    marginBottom: 6,
+    color: '#1C1C1E',
+    marginBottom: 8,
+    letterSpacing: -0.1,
   },
   chipsRow: {
     flexDirection: 'row',
@@ -1001,192 +1042,214 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   classChip: {
-    backgroundColor: '#f9fafb',
+    backgroundColor: '#F2F2F7',
     borderWidth: 1,
-    borderColor: '#d1d5db',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    borderColor: '#E5E5EA',
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 9,
   },
   classChipSelected: {
-    backgroundColor: '#2563eb',
-    borderColor: '#1d4ed8',
+    backgroundColor: '#0B284C',
+    borderColor: '#0B284C',
   },
   classChipText: {
     fontSize: 13,
-    color: '#374151',
+    color: '#1C1C1E',
     fontWeight: '500',
   },
   classChipTextSelected: {
-    color: '#ffffff',
-    fontWeight: '700',
+    color: '#FFFFFF',
+    fontWeight: '600',
   },
   minChip: {
-    backgroundColor: '#f9fafb',
+    backgroundColor: '#F2F2F7',
     borderWidth: 1,
-    borderColor: '#d1d5db',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    borderColor: '#E5E5EA',
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
   },
   minChipSelected: {
-    backgroundColor: '#2563eb',
-    borderColor: '#1d4ed8',
+    backgroundColor: '#0B284C',
+    borderColor: '#0B284C',
   },
   minChipText: {
-    fontSize: 12,
-    color: '#374151',
+    fontSize: 13,
+    color: '#1C1C1E',
     fontWeight: '600',
   },
   minChipTextSelected: {
-    color: '#ffffff',
+    color: '#FFFFFF',
   },
   input: {
-    height: 42,
-    backgroundColor: '#f9fafb',
+    height: 46,
+    backgroundColor: '#F2F2F7',
     borderWidth: 1,
-    borderColor: '#d1d5db',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    fontSize: 13,
-    color: '#111827',
+    borderColor: '#E5E5EA',
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    fontSize: 14,
+    color: '#000000',
   },
   textArea: {
-    height: 64,
-    paddingTop: 8,
+    height: 72,
+    paddingTop: 10,
     textAlignVertical: 'top',
   },
   startBtn: {
-    height: 44,
-    backgroundColor: '#2563eb',
-    borderRadius: 8,
+    height: 48,
+    flexDirection: 'row',
+    gap: 8,
+    backgroundColor: '#0B284C',
+    borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 8,
+    shadowColor: '#0B284C',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 3,
   },
   startBtnText: {
-    color: '#ffffff',
-    fontSize: 14,
-    fontWeight: '700',
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '600',
+    letterSpacing: -0.2,
   },
   errorBox: {
-    backgroundColor: '#fef2f2',
-    borderWidth: 1,
-    borderColor: '#fca5a5',
-    borderRadius: 8,
-    padding: 10,
-    marginBottom: 12,
+    backgroundColor: 'rgba(255, 59, 48, 0.1)',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 14,
   },
   errorText: {
     fontSize: 12,
-    color: '#b91c1c',
+    color: '#FF3B30',
+    fontWeight: '500',
   },
   emptyText: {
     fontSize: 13,
-    color: '#6b7280',
-    fontStyle: 'italic',
+    color: '#8E8E93',
     paddingVertical: 12,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 16,
+    padding: 20,
   },
   modalBox: {
     width: '100%',
-    maxWidth: 440,
-    backgroundColor: '#ffffff',
-    borderRadius: 12,
-    padding: 20,
+    maxWidth: 420,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    padding: 24,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.15,
+    shadowRadius: 24,
+    elevation: 8,
   },
   modalTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '700',
-    color: '#111827',
+    color: '#000000',
+    letterSpacing: -0.4,
     marginBottom: 4,
   },
   modalSubtitle: {
-    fontSize: 12,
-    color: '#6b7280',
-    marginBottom: 14,
+    fontSize: 13,
+    color: '#8E8E93',
+    marginBottom: 16,
+    lineHeight: 18,
   },
   rosterSelectBox: {
     maxHeight: 140,
+    borderRadius: 12,
+    backgroundColor: '#F2F2F7',
     borderWidth: 1,
-    borderColor: '#e5e7eb',
-    borderRadius: 6,
-    backgroundColor: '#f9fafb',
+    borderColor: '#E5E5EA',
   },
   rosterSelectItem: {
-    padding: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
+    padding: 10,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#E5E5EA',
   },
   rosterSelectItemActive: {
-    backgroundColor: '#dbeafe',
+    backgroundColor: 'rgba(0, 122, 255, 0.12)',
   },
   rosterSelectName: {
-    fontSize: 12,
-    color: '#1f2937',
+    fontSize: 13,
+    color: '#000000',
   },
   rosterSelectActiveText: {
-    fontWeight: '700',
-    color: '#1d4ed8',
+    fontWeight: '600',
+    color: '#007AFF',
   },
   removeTargetBox: {
-    backgroundColor: '#fee2e2',
-    padding: 10,
-    borderRadius: 6,
-    marginBottom: 12,
+    backgroundColor: 'rgba(255, 59, 48, 0.1)',
+    padding: 12,
+    borderRadius: 12,
+    marginBottom: 14,
   },
   removeTargetName: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#991b1b',
+    color: '#FF3B30',
   },
   modalButtons: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
-    gap: 8,
-    marginTop: 12,
+    gap: 10,
+    marginTop: 16,
   },
   cancelBtn: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 10,
   },
   cancelBtnText: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '600',
-    color: '#6b7280',
+    color: '#8E8E93',
   },
   submitBtn: {
-    backgroundColor: '#2563eb',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 6,
+    backgroundColor: '#007AFF',
+    paddingHorizontal: 18,
+    paddingVertical: 11,
+    borderRadius: 12,
+    shadowColor: '#007AFF',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 2,
   },
   submitBtnText: {
-    color: '#ffffff',
-    fontSize: 13,
-    fontWeight: '700',
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600',
+    letterSpacing: -0.1,
   },
   deleteBtn: {
-    backgroundColor: '#dc2626',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 6,
+    backgroundColor: '#FF3B30',
+    paddingHorizontal: 18,
+    paddingVertical: 11,
+    borderRadius: 12,
   },
   deleteBtnText: {
-    color: '#ffffff',
-    fontSize: 13,
-    fontWeight: '700',
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600',
+    letterSpacing: -0.1,
   },
   disabled: {
     opacity: 0.6,
   },
   pressed: {
-    opacity: 0.7,
+    opacity: 0.85,
+    transform: [{ scale: 0.98 }],
   },
 });

@@ -51,10 +51,10 @@ export function AdminAuditLogsView() {
       </View>
 
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>Append-Only System Audit Trail</Text>
+        <Text style={styles.cardTitle}>Security Audit Trail</Text>
         <Text style={styles.cardDesc}>
-          Immutable event log tracking device approvals, manual attendance overrides, class
-          membership alterations, and session lifecycle changes.
+          Verified event log tracking device approvals, manual attendance overrides, and
+          session lifecycle changes.
         </Text>
       </View>
 
@@ -71,13 +71,13 @@ export function AdminAuditLogsView() {
               <View style={styles.actionPill}>
                 <Text style={styles.actionText}>{item.action.toUpperCase()}</Text>
               </View>
-              <Text style={styles.logTime}>
-                {new Date(item.timestamp).toLocaleString()}
+              <Text style={styles.logTime} numberOfLines={1}>
+                {new Date(item.timestamp).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}
               </Text>
             </View>
 
             <View style={styles.logBody}>
-              <Text style={styles.logTarget}>
+              <Text style={styles.logTarget} numberOfLines={1} ellipsizeMode="tail">
                 Target: {item.target_type} ({item.target_id ? item.target_id.slice(0, 8) + '...' : 'System'})
               </Text>
               {item.actor_user_id && (
@@ -108,12 +108,12 @@ export function AdminAuditLogsView() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9fafb',
+    backgroundColor: '#F2F2F7',
   },
   content: {
     padding: 16,
-    gap: 12,
-    maxWidth: 640,
+    gap: 14,
+    maxWidth: 600,
     width: '100%',
     alignSelf: 'center',
   },
@@ -123,45 +123,52 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   screenTitle: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: '700',
-    color: '#111827',
+    color: '#000000',
+    letterSpacing: -0.5,
   },
   refreshLink: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#2563eb',
+    color: '#007AFF',
   },
   card: {
-    backgroundColor: '#ffffff',
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 18,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(0, 0, 0, 0.08)',
     shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 10,
+    elevation: 2,
   },
   cardTitle: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '700',
-    color: '#111827',
+    color: '#000000',
+    letterSpacing: -0.4,
     marginBottom: 4,
   },
   cardDesc: {
     fontSize: 13,
-    color: '#6b7280',
+    color: '#8E8E93',
     lineHeight: 18,
   },
   logCard: {
-    backgroundColor: '#ffffff',
-    borderRadius: 10,
-    padding: 14,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    gap: 8,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(0, 0, 0, 0.08)',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+    elevation: 1,
+    gap: 10,
   },
   logHeader: {
     flexDirection: 'row',
@@ -169,7 +176,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   actionPill: {
-    backgroundColor: '#f3f4f6',
+    backgroundColor: 'rgba(0, 122, 255, 0.1)',
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 6,
@@ -177,52 +184,53 @@ const styles = StyleSheet.create({
   actionText: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#374151',
-    letterSpacing: 0.5,
+    color: '#007AFF',
+    letterSpacing: 0.4,
   },
   logTime: {
-    fontSize: 11,
-    color: '#9ca3af',
+    fontSize: 12,
+    color: '#8E8E93',
   },
   logBody: {
-    gap: 2,
+    gap: 3,
   },
   logTarget: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '600',
-    color: '#111827',
+    color: '#000000',
+    letterSpacing: -0.2,
   },
   logActor: {
     fontSize: 12,
-    color: '#6b7280',
+    color: '#636366',
   },
   logReason: {
     fontSize: 12,
-    color: '#b45309',
+    color: '#FF9500',
     marginTop: 2,
+    fontWeight: '500',
   },
   metaBox: {
-    backgroundColor: '#f9fafb',
-    padding: 8,
-    borderRadius: 6,
+    backgroundColor: '#F2F2F7',
+    padding: 10,
+    borderRadius: 10,
     marginTop: 4,
   },
   metaTitle: {
     fontSize: 9,
     fontWeight: '700',
-    color: '#6b7280',
-    letterSpacing: 0.5,
+    color: '#8E8E93',
+    letterSpacing: 0.6,
     marginBottom: 2,
   },
   metaContent: {
     fontSize: 11,
     fontFamily: 'monospace',
-    color: '#374151',
+    color: '#1C1C1E',
   },
   emptyText: {
     fontSize: 13,
-    color: '#6b7280',
-    fontStyle: 'italic',
+    color: '#8E8E93',
     paddingVertical: 12,
   },
 });

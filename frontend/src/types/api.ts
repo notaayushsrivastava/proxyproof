@@ -86,11 +86,15 @@ export interface SessionItem {
   class_name?: string;
   class_code?: string;
   attendance_count?: number;
+  current_token?: string;
+  current_time_slot?: number;
 }
 
-export interface SessionCreateResponse {
-  session: SessionItem;
-  beacon_secret: string;
+export interface SessionCreateResponse extends SessionItem {
+  session_secret: string;
+  beacon_secret?: string;
+  proof_validity_seconds?: number;
+  session?: SessionItem;
 }
 
 export interface AttendanceRecord {
@@ -110,32 +114,40 @@ export interface AttendanceRecord {
 export interface AttendanceSubmissionPayload {
   proof: string;
   time_slot: number;
-  protocol_version: number;
+  request_id?: string;
+  client_request_id?: string;
   rssi_median: number;
-  rssi_samples_count: number;
-  client_request_id: string;
+  rssi_samples?: number[];
+  rssi_samples_count?: number;
+  protocol_version?: number;
   device_signature?: string | null;
 }
 
 export interface AttendanceSubmissionResponse {
-  status: string;
+  outcome_code?: string;
+  status?: string;
   message: string;
-  attendance_record_id: string;
-  marked_at: string;
+  session_id?: string;
+  student_id?: string;
+  attendance_record_id?: string;
+  marked_at?: string;
+}
+
+export interface ClassAttendanceSummary {
+  class_id: string;
+  class_name: string;
+  class_code: string;
+  total_completed_sessions: number;
+  attended_sessions: number;
+  percentage: number;
+  attendance_percentage?: number; // Normalized alias
 }
 
 export interface StudentAttendanceSummary {
   total_eligible_sessions: number;
   attended_sessions: number;
   overall_percentage: number;
-  classes: {
-    class_id: string;
-    class_name: string;
-    class_code: string;
-    total_completed_sessions: number;
-    attended_sessions: number;
-    attendance_percentage: number;
-  }[];
+  classes: ClassAttendanceSummary[];
 }
 
 export interface StudentAttendanceRecord {

@@ -106,6 +106,7 @@ def get_student_attendance_history(
     for rec, sess, cls in records:
         history.append(
             StudentAttendanceHistoryItem(
+                id=rec.id,
                 session_id=sess.id,
                 class_id=cls.id,
                 class_name=cls.name,

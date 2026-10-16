@@ -1,0 +1,562 @@
+import React, { useEffect, useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Pressable,
+  Modal,
+  ScrollView,
+  Platform,
+} from 'react-native';
+import {
+  X,
+  LogOut,
+  User,
+  Settings,
+  Shield,
+  Radio,
+  Wifi,
+  Smartphone,
+  CheckCircle2,
+  Sparkles,
+} from 'lucide-react-native';
+import { useAuth } from '../store/auth';
+import { api, getDefaultBaseUrl } from '../services/api';
+
+interface SidebarProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export function Sidebar({ isOpen, onClose }: SidebarProps) {
+  const { user, logout, login } = useAuth();
+  const [isServerHealthy, setIsServerHealthy] = useState<boolean | null>(null);
+  const [isCheckingHealth, setIsCheckingHealth] = useState(false);
+  const apiHost = getDefaultBaseUrl();
+
+  const checkHealth = async () => {
+    setIsCheckingHealth(true);
+    try {
+      await api.checkHealth();
+      setIsServerHealthy(true);
+    } catch {
+      setIsServerHealthy(false);
+    } finally {
+      setIsCheckingHealth(false);
+    }
+  };
+
+  useEffect(() => {
+    let mounted = true;
+    if (isOpen) {
+      api.checkHealth()
+        .then(() => {
+          if (mounted) setIsServerHealthy(true);
+        })
+        .catch(() => {
+          if (mounted) setIsServerHealthy(false);
+        });
+    }
+    return () => {
+      mounted = false;
+    };
+  }, [isOpen]);
+
+  if (!user) return null;
+
+  const roleColors: Record<string, { bg: string; text: string; label: string }> = {
+    student: { bg: 'rgba(0, 157, 150, 0.12)', text: '#009D96', label: 'STUDENT' },
+    organizer: { bg: 'rgba(11, 40, 76, 0.10)', text: '#0B284C', label: 'INSTRUCTOR' },
+    admin: { bg: 'rgba(255, 45, 85, 0.12)', text: '#FF2D55', label: 'ADMINISTRATOR' },
+  };
+
+  const currentRole = roleColors[user.role] || {
+    bg: 'rgba(142, 142, 147, 0.12)',
+    text: '#8E8E93',
+    label: user.role.toUpperCase(),
+  };
+
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map((part) => part[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  const handleSwitchAccount = async (email: string) => {
+    try {
+      await login(email, 'Password123!');
+      onClose();
+    } catch (err) {
+      console.warn('Switch account failed:', err);
+    }
+  };
+
+  return (
+    <Modal
+      visible={isOpen}
+      transparent
+      animationType="fade"
+      onRequestClose={onClose}
+    >
+      <View style={styles.modalOverlay}>
+        <Pressable
+          style={styles.backdrop}
+          onPress={onClose}
+          accessibilityRole="button"
+          accessibilityLabel="Close sidebar"
+        />
+
+        <View style={styles.drawerContainer}>
+          {/* Drawer Header */}
+          <View style={styles.drawerHeader}>
+            <View style={styles.headerTitleRow}>
+              <Settings size={18} color="#000000" strokeWidth={2.2} />
+              <Text style={styles.drawerTitle}>Settings & Profile</Text>
+            </View>
+            <Pressable
+              style={({ pressed }) => [styles.closeBtn, pressed && styles.btnPressed]}
+              onPress={onClose}
+              accessibilityRole="button"
+              accessibilityLabel="Close"
+            >
+              <X size={18} color="#636366" strokeWidth={2.4} />
+            </Pressable>
+          </View>
+
+          <ScrollView style={styles.scrollArea} contentContainerStyle={styles.scrollContent}>
+            {/* User Profile Card */}
+            <View style={styles.userCard}>
+              <View style={styles.avatarCircle}>
+                <Text style={styles.avatarText}>{getInitials(user.full_name)}</Text>
+              </View>
+
+              <View style={styles.userTextInfo}>
+                <Text style={styles.userName} numberOfLines={1}>
+                  {user.full_name}
+                </Text>
+                <Text style={styles.userEmail} numberOfLines={1}>
+                  {user.email}
+                </Text>
+                <View style={[styles.roleBadge, { backgroundColor: currentRole.bg }]}>
+                  <Shield size={11} color={currentRole.text} strokeWidth={2.2} />
+                  <Text style={[styles.roleBadgeText, { color: currentRole.text }]}>
+                    {currentRole.label}
+                  </Text>
+                </View>
+              </View>
+            </View>
+
+            {/* Connection & Network Status */}
+            <View style={styles.sectionCard}>
+              <Text style={styles.sectionHeader}>SYSTEM & CONNECTION</Text>
+
+              <View style={styles.statusRow}>
+                <View style={styles.statusRowLeft}>
+                  <Wifi size={16} color="#007AFF" strokeWidth={2.2} />
+                  <View>
+                    <Text style={styles.statusRowTitle}>Campus Backend</Text>
+                    <Text style={styles.statusRowSub} numberOfLines={1}>
+                      {apiHost}
+                    </Text>
+                  </View>
+                </View>
+
+                <Pressable
+                  style={[
+                    styles.healthPill,
+                    isServerHealthy === true
+                      ? styles.healthConnected
+                      : isServerHealthy === false
+                      ? styles.healthOffline
+                      : styles.healthChecking,
+                  ]}
+                  onPress={checkHealth}
+                  disabled={isCheckingHealth}
+                >
+                  <View
+                    style={[
+                      styles.dotIndicator,
+                      {
+                        backgroundColor:
+                          isServerHealthy === true
+                            ? '#34C759'
+                            : isServerHealthy === false
+                            ? '#FF3B30'
+                            : '#FF9500',
+                      },
+                    ]}
+                  />
+                  <Text
+                    style={[
+                      styles.healthText,
+                      {
+                        color:
+                          isServerHealthy === true
+                            ? '#34C759'
+                            : isServerHealthy === false
+                            ? '#FF3B30'
+                            : '#FF9500',
+                      },
+                    ]}
+                  >
+                    {isCheckingHealth
+                      ? 'Checking...'
+                      : isServerHealthy === true
+                      ? 'Connected'
+                      : isServerHealthy === false
+                      ? 'Offline'
+                      : 'Verifying...'}
+                  </Text>
+                </Pressable>
+              </View>
+
+              <View style={styles.statusRow}>
+                <View style={styles.statusRowLeft}>
+                  <Radio size={16} color="#34C759" strokeWidth={2.2} />
+                  <View>
+                    <Text style={styles.statusRowTitle}>Bluetooth Low Energy</Text>
+                    <Text style={styles.statusRowSub}>Hardware ready for check-in</Text>
+                  </View>
+                </View>
+                <View style={styles.badgeReady}>
+                  <CheckCircle2 size={12} color="#34C759" strokeWidth={2.2} />
+                  <Text style={styles.badgeReadyText}>Ready</Text>
+                </View>
+              </View>
+
+              <View style={[styles.statusRow, { borderBottomWidth: 0 }]}>
+                <View style={styles.statusRowLeft}>
+                  <Smartphone size={16} color="#8E8E93" strokeWidth={2.2} />
+                  <View>
+                    <Text style={styles.statusRowTitle}>ProxyProof App</Text>
+                    <Text style={styles.statusRowSub}>Version 1.0.0 (Build 2026.1)</Text>
+                  </View>
+                </View>
+              </View>
+            </View>
+
+            {/* Quick Demo Switcher */}
+            <View style={styles.sectionCard}>
+              <View style={styles.sectionHeaderRow}>
+                <Sparkles size={13} color="#007AFF" strokeWidth={2.2} />
+                <Text style={styles.sectionHeader}>SWITCH DEMO ACCOUNT</Text>
+              </View>
+
+              <Pressable
+                style={({ pressed }) => [
+                  styles.switchAccountBtn,
+                  user.email === 'student1@proxyproof.local' && styles.switchAccountBtnActive,
+                  pressed && styles.btnPressed,
+                ]}
+                onPress={() => handleSwitchAccount('student1@proxyproof.local')}
+              >
+                <User size={15} color="#007AFF" strokeWidth={2.2} />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.switchAccountName}>Alice Student</Text>
+                  <Text style={styles.switchAccountEmail}>student1@proxyproof.local</Text>
+                </View>
+                {user.email === 'student1@proxyproof.local' && (
+                  <View style={styles.activeDot} />
+                )}
+              </Pressable>
+
+              <Pressable
+                style={({ pressed }) => [
+                  styles.switchAccountBtn,
+                  user.email === 'organizer@proxyproof.local' && styles.switchAccountBtnActive,
+                  pressed && styles.btnPressed,
+                ]}
+                onPress={() => handleSwitchAccount('organizer@proxyproof.local')}
+              >
+                <User size={15} color="#FF9500" strokeWidth={2.2} />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.switchAccountName}>Turing Organizer</Text>
+                  <Text style={styles.switchAccountEmail}>organizer@proxyproof.local</Text>
+                </View>
+                {user.email === 'organizer@proxyproof.local' && (
+                  <View style={styles.activeDot} />
+                )}
+              </Pressable>
+
+              <Pressable
+                style={({ pressed }) => [
+                  styles.switchAccountBtn,
+                  user.email === 'admin@proxyproof.local' && styles.switchAccountBtnActive,
+                  pressed && styles.btnPressed,
+                ]}
+                onPress={() => handleSwitchAccount('admin@proxyproof.local')}
+              >
+                <Shield size={15} color="#FF2D55" strokeWidth={2.2} />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.switchAccountName}>System Admin</Text>
+                  <Text style={styles.switchAccountEmail}>admin@proxyproof.local</Text>
+                </View>
+                {user.email === 'admin@proxyproof.local' && (
+                  <View style={styles.activeDot} />
+                )}
+              </Pressable>
+            </View>
+
+            {/* Logout Action Button */}
+            <Pressable
+              style={({ pressed }) => [styles.logoutBtn, pressed && styles.btnPressed]}
+              onPress={() => {
+                onClose();
+                logout();
+              }}
+              accessibilityRole="button"
+              accessibilityLabel="Log out of account"
+            >
+              <LogOut size={16} color="#FF3B30" strokeWidth={2.2} />
+              <Text style={styles.logoutBtnText}>Log Out</Text>
+            </Pressable>
+          </ScrollView>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
+const styles = StyleSheet.create({
+  modalOverlay: {
+    flex: 1,
+    flexDirection: 'row',
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+  },
+  backdrop: {
+    flex: 1,
+  },
+  drawerContainer: {
+    width: '84%',
+    maxWidth: 360,
+    backgroundColor: '#FFFFFF',
+    height: '100%',
+    shadowColor: '#000000',
+    shadowOffset: { width: -4, height: 0 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    elevation: 16,
+  },
+  drawerHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingTop: Platform.OS === 'ios' ? 56 : 20,
+    paddingBottom: 16,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#E5E5EA',
+  },
+  headerTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  drawerTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#000000',
+    letterSpacing: -0.4,
+  },
+  closeBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#F2F2F7',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  btnPressed: {
+    opacity: 0.7,
+    transform: [{ scale: 0.97 }],
+  },
+  scrollArea: {
+    flex: 1,
+  },
+  scrollContent: {
+    padding: 20,
+    gap: 16,
+  },
+  userCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    backgroundColor: '#F2F2F7',
+    borderRadius: 18,
+    padding: 16,
+  },
+  avatarCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#0B284C',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  avatarText: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    letterSpacing: 0.5,
+  },
+  userTextInfo: {
+    flex: 1,
+    gap: 2,
+  },
+  userName: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#000000',
+    letterSpacing: -0.3,
+  },
+  userEmail: {
+    fontSize: 12,
+    color: '#8E8E93',
+  },
+  roleBadge: {
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 100,
+    marginTop: 4,
+  },
+  roleBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+  },
+  sectionCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    padding: 16,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: '#E5E5EA',
+    gap: 12,
+  },
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  sectionHeader: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#8E8E93',
+    letterSpacing: 0.8,
+  },
+  statusRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#F2F2F7',
+  },
+  statusRowLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    flex: 1,
+    marginRight: 8,
+  },
+  statusRowTitle: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#000000',
+  },
+  statusRowSub: {
+    fontSize: 11,
+    color: '#8E8E93',
+    marginTop: 1,
+  },
+  healthPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 100,
+  },
+  healthConnected: {
+    backgroundColor: 'rgba(52, 199, 89, 0.12)',
+  },
+  healthOffline: {
+    backgroundColor: 'rgba(255, 59, 48, 0.12)',
+  },
+  healthChecking: {
+    backgroundColor: 'rgba(255, 149, 0, 0.12)',
+  },
+  dotIndicator: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  healthText: {
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  badgeReady: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(52, 199, 89, 0.12)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 100,
+  },
+  badgeReadyText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#34C759',
+  },
+  switchAccountBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    backgroundColor: '#F2F2F7',
+    padding: 12,
+    borderRadius: 12,
+  },
+  switchAccountBtnActive: {
+    backgroundColor: 'rgba(0, 122, 255, 0.08)',
+    borderWidth: 1,
+    borderColor: '#007AFF',
+  },
+  switchAccountName: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#007AFF',
+  },
+  switchAccountEmail: {
+    fontSize: 11,
+    color: '#8E8E93',
+  },
+  activeDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#007AFF',
+  },
+  logoutBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: 'rgba(255, 59, 48, 0.1)',
+    borderRadius: 14,
+    paddingVertical: 14,
+    marginTop: 8,
+  },
+  logoutBtnText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#FF3B30',
+    letterSpacing: -0.2,
+  },
+});

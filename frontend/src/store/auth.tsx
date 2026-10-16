@@ -43,33 +43,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = async (email: string, password: string): Promise<User> => {
-    setIsLoading(true);
-    try {
-      const authRes = await api.login(email, password);
-      setUser(authRes.user);
-      setTokenState(authRes.access_token);
+    const authRes = await api.login(email, password);
+    await setAuthToken(authRes.access_token);
+    setTokenState(authRes.access_token);
+    setUser(authRes.user);
 
-      // If student, check or trigger device registration
-      if (authRes.user.role === 'student') {
-        ensureStudentDeviceRegistered().catch((err) =>
-          console.warn('Device registration check:', err)
-        );
-      }
-
-      return authRes.user;
-    } finally {
-      setIsLoading(false);
+    // If student, check or trigger device registration
+    if (authRes.user.role === 'student') {
+      ensureStudentDeviceRegistered().catch((err) =>
+        console.warn('Device registration check:', err)
+      );
     }
+
+    return authRes.user;
   };
 
   const logout = async () => {
-    setIsLoading(true);
     try {
       await api.logout();
+    } catch (err) {
+      console.warn('Logout error notice:', err);
     } finally {
+      await setAuthToken(null);
       setUser(null);
       setTokenState(null);
-      setIsLoading(false);
     }
   };
 

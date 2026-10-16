@@ -78,24 +78,29 @@ export function OrganizerHistoryView() {
       ) : (
         <>
           <View style={styles.card}>
-            <Text style={styles.cardTitle}>RFC 4180 Secure CSV Export</Text>
+            <Text style={styles.cardTitle}>Attendance Spreadsheets</Text>
             <Text style={styles.cardDesc}>
-              ProxyProof exports contain full attendance records sanitized against spreadsheet
-              formula injection attacks (=, +, -, @ prefix protection).
+              Export official class attendance logs formatted for Microsoft Excel, Apple Numbers,
+              and Google Sheets.
             </Text>
           </View>
 
           {classes.length > 1 && (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.pillsScroll}>
               {classes.map((c) => {
                 const isSelected = c.id === selectedClassId;
                 return (
                   <Pressable
                     key={c.id}
-                    style={[styles.exportBtn, isSelected && { backgroundColor: '#2563eb' }, { marginRight: 8 }]}
+                    style={({ pressed }) => [
+                      styles.classPill,
+                      isSelected && styles.classPillSelected,
+                      pressed && styles.classPillPressed,
+                    ]}
                     onPress={() => setSelectedClassId(c.id)}
+                    accessibilityRole="button"
                   >
-                    <Text style={[styles.exportBtnText, isSelected && { color: '#ffffff' }]}>
+                    <Text style={[styles.classPillText, isSelected && styles.classPillTextSelected]}>
                       {c.code}
                     </Text>
                   </Pressable>
@@ -108,23 +113,28 @@ export function OrganizerHistoryView() {
             <Text style={styles.cardTitle}>Recent Sessions</Text>
             {sessions.length === 0 ? (
               <Text style={styles.emptyText}>
-                No attendance sessions recorded yet. Start a session from the Dashboard to record attendance.
+                No attendance sessions recorded yet. Start a session from the Live tab to begin.
               </Text>
             ) : (
               sessions.map((s) => (
                 <View key={s.id} style={styles.sessionRow}>
                   <View style={styles.sessionLeft}>
-                    <Text style={styles.sessionName}>{s.class_name || 'Class Session'}</Text>
-                    <Text style={styles.sessionMeta}>
-                      Started: {new Date(s.started_at).toLocaleString()}
+                    <Text style={styles.sessionName} numberOfLines={1} ellipsizeMode="tail">
+                      {s.class_name || 'Class Session'}
                     </Text>
-                    <Text style={styles.sessionStatus}>Status: {s.status.toUpperCase()}</Text>
+                    <Text style={styles.sessionMeta} numberOfLines={1}>
+                      Started: {new Date(s.started_at).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}
+                    </Text>
+                    <View style={styles.statusPill}>
+                      <Text style={styles.sessionStatus}>{s.status.toUpperCase()}</Text>
+                    </View>
                   </View>
 
                   <View style={styles.sessionRight}>
                     <Pressable
-                      style={styles.exportBtn}
+                      style={({ pressed }) => [styles.exportBtn, pressed && styles.exportBtnPressed]}
                       onPress={() => handleExportCsv(s.id)}
+                      accessibilityRole="button"
                     >
                       <Text style={styles.exportBtnText}>Download CSV</Text>
                     </Pressable>
@@ -142,12 +152,12 @@ export function OrganizerHistoryView() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9fafb',
+    backgroundColor: '#F2F2F7',
   },
   content: {
     padding: 16,
     gap: 16,
-    maxWidth: 640,
+    maxWidth: 600,
     width: '100%',
     alignSelf: 'center',
   },
@@ -157,85 +167,141 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   screenTitle: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: '700',
-    color: '#111827',
+    color: '#000000',
+    letterSpacing: -0.5,
   },
   refreshLink: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#2563eb',
+    color: '#007AFF',
   },
-  card: {
-    backgroundColor: '#ffffff',
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
+  pillsScroll: {
+    flexDirection: 'row',
+    marginBottom: 4,
+  },
+  classPill: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(0, 0, 0, 0.1)',
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 9,
+    marginRight: 8,
+    alignItems: 'center',
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
+    shadowOpacity: 0.04,
+    shadowRadius: 3,
     elevation: 1,
   },
+  classPillSelected: {
+    backgroundColor: '#007AFF',
+    borderColor: '#007AFF',
+    shadowColor: '#007AFF',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  classPillPressed: {
+    opacity: 0.85,
+    transform: [{ scale: 0.97 }],
+  },
+  classPillText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#000000',
+    letterSpacing: -0.2,
+  },
+  classPillTextSelected: {
+    color: '#FFFFFF',
+  },
+  card: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 18,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(0, 0, 0, 0.08)',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 10,
+    elevation: 2,
+  },
   cardTitle: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '700',
-    color: '#111827',
+    color: '#000000',
+    letterSpacing: -0.4,
     marginBottom: 4,
   },
   cardDesc: {
     fontSize: 13,
-    color: '#6b7280',
+    color: '#8E8E93',
     lineHeight: 18,
   },
   sessionRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
+    paddingVertical: 14,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#E5E5EA',
   },
   sessionLeft: {
-    gap: 2,
+    gap: 4,
     flex: 1,
+    marginRight: 10,
+    minWidth: 0,
   },
   sessionName: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '600',
-    color: '#111827',
+    color: '#000000',
+    letterSpacing: -0.2,
   },
   sessionMeta: {
     fontSize: 12,
-    color: '#6b7280',
+    color: '#8E8E93',
+  },
+  statusPill: {
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(0, 122, 255, 0.1)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    marginTop: 2,
   },
   sessionStatus: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '700',
-    color: '#2563eb',
-    marginTop: 2,
+    color: '#007AFF',
+    letterSpacing: 0.4,
   },
   sessionRight: {
     alignItems: 'flex-end',
   },
   exportBtn: {
-    backgroundColor: '#eff6ff',
-    borderWidth: 1,
-    borderColor: '#bfdbfe',
-    borderRadius: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    backgroundColor: 'rgba(0, 122, 255, 0.1)',
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+  },
+  exportBtnPressed: {
+    opacity: 0.7,
+    transform: [{ scale: 0.97 }],
   },
   exportBtnText: {
     fontSize: 12,
-    fontWeight: '700',
-    color: '#1d4ed8',
+    fontWeight: '600',
+    color: '#007AFF',
+    letterSpacing: -0.1,
   },
   emptyText: {
     fontSize: 13,
-    color: '#6b7280',
-    fontStyle: 'italic',
+    color: '#8E8E93',
     paddingVertical: 12,
   },
 });

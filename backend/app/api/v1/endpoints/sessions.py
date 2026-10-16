@@ -25,6 +25,8 @@ from backend.app.schemas.attendance import AttendanceRecordResponse
 from backend.app.services.class_service import verify_organizer_class_access
 from backend.app.services.export_service import generate_attendance_csv
 from backend.app.services.audit_service import log_audit_event
+from backend.app.core.config import settings
+from backend.app.core.security import generate_hmac_proof
 from backend.app.services.websocket_manager import ws_manager
 
 router = APIRouter()
@@ -144,7 +146,16 @@ def get_active_sessions_for_student(
     )
 
     results = []
+    current_time_slot = int(now.timestamp() // settings.PROOF_VALIDITY_SECONDS)
     for sess, cls in active_sessions:
+        token = None
+        if settings.ENVIRONMENT == "development" and sess.beacon_secret_ciphertext:
+            token = generate_hmac_proof(
+                session_secret_hex=sess.beacon_secret_ciphertext,
+                session_id=sess.id,
+                time_slot=current_time_slot,
+                protocol_version=sess.protocol_version,
+            )
         results.append(
             ActiveSessionStudentView(
                 id=sess.id,
@@ -155,6 +166,8 @@ def get_active_sessions_for_student(
                 ends_at=sess.ends_at,
                 proximity_threshold=sess.proximity_threshold,
                 protocol_version=sess.protocol_version,
+                current_token=token,
+                current_time_slot=current_time_slot if token else None,
             )
         )
     return results

@@ -94,26 +94,23 @@ export function AdminOverviewView() {
           </View>
 
           <View style={styles.card}>
-            <Text style={styles.cardTitle}>System Architecture & Security Policy</Text>
+            <Text style={styles.cardTitle}>Campus Attendance & Integrity Rules</Text>
             <View style={styles.policyList}>
               <Text style={styles.policyItem}>
-                &bull; <Text style={styles.bold}>1-Active-Device Rule:</Text> Enforced at the
-                PostgreSQL database level with a partial unique index. A student cannot mark
-                attendance from an unapproved secondary device.
+                &bull; <Text style={styles.bold}>One Phone Per Student:</Text> Strictly enforced across
+                student accounts. Students cannot submit attendance from an unapproved secondary phone.
               </Text>
               <Text style={styles.policyItem}>
-                &bull; <Text style={styles.bold}>Rotating HMAC-SHA-256 Proof:</Text> Organizer beacons
-                refresh every 5 seconds. Stale or relayed proofs outside clock drift (&plusmn;1 slot)
-                are strictly rejected by the server validation engine.
+                &bull; <Text style={styles.bold}>Real-Time Verification:</Text> Instructor check-in signals
+                refresh every few seconds. Shared or relayed links are automatically rejected.
               </Text>
               <Text style={styles.policyItem}>
-                &bull; <Text style={styles.bold}>Client-Reported RSSI Policy:</Text> Attendance attempts
-                require at least 3 samples with a median signal &ge; -75 dBm to verify physical
-                classroom proximity.
+                &bull; <Text style={styles.bold}>Classroom Presence:</Text> Check-in requires verified in-room
+                Bluetooth proximity near the instructor&apos;s phone.
               </Text>
               <Text style={styles.policyItem}>
-                &bull; <Text style={styles.bold}>Auditable Corrections:</Text> Any manual attendance
-                mark or removal requires a written reason and is permanently recorded.
+                &bull; <Text style={styles.bold}>Audited Corrections:</Text> Any manual attendance addition or
+                removal requires a written reason and is logged in the permanent audit trail.
               </Text>
             </View>
           </View>
@@ -126,12 +123,12 @@ export function AdminOverviewView() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9fafb',
+    backgroundColor: '#F2F2F7',
   },
   content: {
     padding: 16,
     gap: 16,
-    maxWidth: 640,
+    maxWidth: 600,
     width: '100%',
     alignSelf: 'center',
   },
@@ -141,73 +138,83 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   screenTitle: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: '700',
-    color: '#111827',
+    color: '#000000',
+    letterSpacing: -0.5,
   },
   refreshLink: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#2563eb',
+    color: '#007AFF',
   },
   statsGrid: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 10,
   },
   statCard: {
     flex: 1,
-    backgroundColor: '#ffffff',
-    borderRadius: 12,
-    padding: 14,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
+    minWidth: 90,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    padding: 16,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(0, 0, 0, 0.08)',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 10,
+    elevation: 2,
     alignItems: 'center',
   },
   statNumber: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: '#111827',
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#000000',
+    letterSpacing: -0.8,
   },
   statLabel: {
     fontSize: 11,
     fontWeight: '600',
-    color: '#4b5563',
+    color: '#636366',
     textAlign: 'center',
-    marginTop: 2,
+    marginTop: 4,
   },
   statSub: {
     fontSize: 10,
-    color: '#9ca3af',
+    color: '#8E8E93',
     marginTop: 2,
   },
   card: {
-    backgroundColor: '#ffffff',
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 18,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(0, 0, 0, 0.08)',
     shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 10,
+    elevation: 2,
   },
   cardTitle: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '700',
-    color: '#111827',
-    marginBottom: 8,
+    color: '#000000',
+    letterSpacing: -0.4,
+    marginBottom: 10,
   },
   policyList: {
-    gap: 8,
+    gap: 10,
   },
   policyItem: {
     fontSize: 13,
-    color: '#4b5563',
+    color: '#636366',
     lineHeight: 18,
   },
   bold: {
-    fontWeight: '700',
-    color: '#111827',
+    fontWeight: '600',
+    color: '#000000',
   },
 });

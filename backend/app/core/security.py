@@ -68,6 +68,23 @@ def decode_token(token: str) -> Dict[str, Any]:
     return payload
 
 
+def generate_hmac_proof(
+    session_secret_hex: str,
+    session_id: uuid.UUID,
+    time_slot: int,
+    protocol_version: int = 1,
+) -> str:
+    """Generates a 32-character hex HMAC proof for a given session and time slot."""
+    secret_bytes = bytes.fromhex(session_secret_hex)
+    msg = (
+        struct.pack(">B", protocol_version)
+        + session_id.bytes
+        + struct.pack(">I", time_slot)
+    )
+    expected_full = hmac.new(secret_bytes, msg, hashlib.sha256).hexdigest()
+    return expected_full[:32]
+
+
 def verify_hmac_proof(
     candidate_proof: str,
     session_secret_hex: str,
@@ -76,12 +93,11 @@ def verify_hmac_proof(
     protocol_version: int = 1,
 ) -> bool:
     """Verifies a 32-character hex HMAC proof in constant time."""
-    secret_bytes = bytes.fromhex(session_secret_hex)
-    msg = (
-        struct.pack(">B", protocol_version)
-        + session_id.bytes
-        + struct.pack(">I", time_slot)
+    expected_truncated = generate_hmac_proof(
+        session_secret_hex=session_secret_hex,
+        session_id=session_id,
+        time_slot=time_slot,
+        protocol_version=protocol_version,
     )
-    expected_full = hmac.new(secret_bytes, msg, hashlib.sha256).hexdigest()
-    expected_truncated = expected_full[:32]
     return hmac.compare_digest(candidate_proof.lower(), expected_truncated.lower())
+

@@ -9,6 +9,7 @@ import {
   TextInput,
   Modal,
 } from 'react-native';
+import { Check, X } from 'lucide-react-native';
 import { api } from '../services/api';
 import { DeviceChangeRequestDetail } from '../types/api';
 
@@ -131,11 +132,11 @@ export function AdminDeviceQueueView() {
           return (
             <View key={r.id} style={styles.card}>
               <View style={styles.cardHeader}>
-                <View>
-                  <Text style={styles.studentName}>
+                <View style={styles.studentInfoGroup}>
+                  <Text style={styles.studentName} numberOfLines={1} ellipsizeMode="tail">
                     {r.student_name || 'Enrolled Student'}
                   </Text>
-                  <Text style={styles.studentEmail}>
+                  <Text style={styles.studentEmail} numberOfLines={1} ellipsizeMode="tail">
                     {r.student_email || r.student_id}
                   </Text>
                 </View>
@@ -167,28 +168,28 @@ export function AdminDeviceQueueView() {
 
               <View style={styles.deviceComparison}>
                 <View style={styles.compBox}>
-                  <Text style={styles.compLabel}>PREVIOUS DEVICE (REVOKING)</Text>
-                  <Text style={styles.compValue}>
-                    {r.old_device_label || 'Existing registered device'}
+                  <Text style={styles.compLabel}>CURRENT PHONE</Text>
+                  <Text style={styles.compValue} numberOfLines={1} ellipsizeMode="tail">
+                    {r.old_device_label || 'Existing registered phone'}
                   </Text>
                 </View>
                 <View style={styles.compBox}>
-                  <Text style={styles.compLabel}>REQUESTED DEVICE (ACTIVATING)</Text>
-                  <Text style={styles.compValue}>
-                    {r.new_device_label || 'New device proposal'}
+                  <Text style={styles.compLabel}>REQUESTED PHONE</Text>
+                  <Text style={styles.compValue} numberOfLines={1} ellipsizeMode="tail">
+                    {r.new_device_label || 'New phone proposal'}
                   </Text>
                 </View>
               </View>
 
               {r.reason && (
                 <View style={styles.reasonBox}>
-                  <Text style={styles.reasonLabel}>Student Stated Reason:</Text>
+                  <Text style={styles.reasonLabel}>Student Reason:</Text>
                   <Text style={styles.reasonText}>{r.reason}</Text>
                 </View>
               )}
 
               <Text style={styles.submittedDate}>
-                Submitted: {new Date(r.created_at).toLocaleString()}
+                Submitted {new Date(r.created_at).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}
               </Text>
 
               {isPending && (
@@ -205,7 +206,10 @@ export function AdminDeviceQueueView() {
                     {isWorking ? (
                       <ActivityIndicator size="small" color="#ffffff" />
                     ) : (
-                      <Text style={styles.approveBtnText}>Approve & Activate</Text>
+                      <>
+                        <Check size={15} color="#ffffff" strokeWidth={2.4} />
+                        <Text style={styles.approveBtnText}>Approve & Activate</Text>
+                      </>
                     )}
                   </Pressable>
 
@@ -214,6 +218,7 @@ export function AdminDeviceQueueView() {
                     onPress={() => handleOpenReject(r.id)}
                     disabled={isWorking}
                   >
+                    <X size={15} color="#FF3B30" strokeWidth={2.4} />
                     <Text style={styles.rejectBtnText}>Reject</Text>
                   </Pressable>
                 </View>
@@ -272,12 +277,12 @@ export function AdminDeviceQueueView() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9fafb',
+    backgroundColor: '#F2F2F7',
   },
   content: {
     padding: 16,
     gap: 16,
-    maxWidth: 640,
+    maxWidth: 600,
     width: '100%',
     alignSelf: 'center',
   },
@@ -287,64 +292,77 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   screenTitle: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: '700',
-    color: '#111827',
+    color: '#000000',
+    letterSpacing: -0.5,
   },
   refreshLink: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#2563eb',
+    color: '#007AFF',
   },
   filterTabs: {
     flexDirection: 'row',
-    backgroundColor: '#e5e7eb',
-    borderRadius: 8,
+    backgroundColor: '#E5E5EA',
+    borderRadius: 12,
     padding: 3,
   },
   filterTab: {
     flex: 1,
-    paddingVertical: 6,
+    paddingVertical: 7,
     alignItems: 'center',
-    borderRadius: 6,
+    borderRadius: 9,
   },
   filterTabActive: {
-    backgroundColor: '#ffffff',
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 1.5 },
+    shadowOpacity: 0.12,
+    shadowRadius: 3,
+    elevation: 3,
   },
   filterTabText: {
     fontSize: 12,
-    fontWeight: '700',
-    color: '#6b7280',
+    fontWeight: '600',
+    color: '#636366',
+    letterSpacing: -0.1,
   },
   filterTabTextActive: {
-    color: '#111827',
+    color: '#000000',
   },
   card: {
-    backgroundColor: '#ffffff',
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 18,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(0, 0, 0, 0.08)',
     shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-    gap: 12,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 10,
+    elevation: 2,
+    gap: 14,
   },
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
   },
+  studentInfoGroup: {
+    flex: 1,
+    marginRight: 8,
+    minWidth: 0,
+  },
   studentName: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#111827',
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#000000',
+    letterSpacing: -0.2,
   },
   studentEmail: {
     fontSize: 12,
-    color: '#6b7280',
+    color: '#8E8E93',
     marginTop: 1,
   },
   statusPill: {
@@ -353,32 +371,33 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   pillPending: {
-    backgroundColor: '#fef3c7',
+    backgroundColor: 'rgba(255, 149, 0, 0.12)',
   },
   pillApproved: {
-    backgroundColor: '#dcfce7',
+    backgroundColor: 'rgba(52, 199, 89, 0.12)',
   },
   pillRejected: {
-    backgroundColor: '#fee2e2',
+    backgroundColor: 'rgba(255, 59, 48, 0.12)',
   },
   statusPillText: {
     fontSize: 10,
     fontWeight: '700',
+    letterSpacing: 0.3,
   },
   textPending: {
-    color: '#b45309',
+    color: '#FF9500',
   },
   textApproved: {
-    color: '#15803d',
+    color: '#34C759',
   },
   textRejected: {
-    color: '#b91c1c',
+    color: '#FF3B30',
   },
   deviceComparison: {
-    backgroundColor: '#f9fafb',
-    borderRadius: 8,
-    padding: 10,
-    gap: 8,
+    backgroundColor: '#F2F2F7',
+    borderRadius: 14,
+    padding: 12,
+    gap: 10,
   },
   compBox: {
     gap: 2,
@@ -386,141 +405,156 @@ const styles = StyleSheet.create({
   compLabel: {
     fontSize: 9,
     fontWeight: '700',
-    color: '#6b7280',
-    letterSpacing: 0.5,
+    color: '#8E8E93',
+    letterSpacing: 0.6,
   },
   compValue: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '600',
-    color: '#1f2937',
+    color: '#000000',
   },
   reasonBox: {
-    backgroundColor: '#fffbeb',
-    borderRadius: 6,
-    padding: 8,
-    borderWidth: 1,
-    borderColor: '#fef3c7',
+    backgroundColor: 'rgba(255, 149, 0, 0.1)',
+    borderRadius: 10,
+    padding: 10,
   },
   reasonLabel: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#92400e',
+    color: '#FF9500',
     marginBottom: 2,
   },
   reasonText: {
     fontSize: 12,
-    color: '#78350f',
+    color: '#B45309',
   },
   submittedDate: {
     fontSize: 11,
-    color: '#9ca3af',
+    color: '#8E8E93',
   },
   actionsRow: {
     flexDirection: 'row',
-    gap: 8,
+    gap: 10,
     marginTop: 4,
   },
   approveBtn: {
     flex: 2,
-    height: 40,
-    backgroundColor: '#16a34a',
-    borderRadius: 8,
+    height: 44,
+    flexDirection: 'row',
+    gap: 6,
+    backgroundColor: '#34C759',
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
+    shadowColor: '#34C759',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 2,
   },
   approveBtnText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    letterSpacing: -0.1,
   },
   rejectBtn: {
     flex: 1,
-    height: 40,
-    backgroundColor: '#fee2e2',
-    borderWidth: 1,
-    borderColor: '#fca5a5',
-    borderRadius: 8,
+    height: 44,
+    flexDirection: 'row',
+    gap: 6,
+    backgroundColor: 'rgba(255, 59, 48, 0.12)',
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
   },
   rejectBtnText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#b91c1c',
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#FF3B30',
   },
   emptyText: {
     fontSize: 13,
-    color: '#6b7280',
-    fontStyle: 'italic',
+    color: '#8E8E93',
     paddingVertical: 12,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 16,
+    padding: 20,
   },
   modalBox: {
     width: '100%',
-    maxWidth: 440,
-    backgroundColor: '#ffffff',
-    borderRadius: 12,
-    padding: 20,
+    maxWidth: 420,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    padding: 24,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.15,
+    shadowRadius: 24,
+    elevation: 8,
   },
   modalTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '700',
-    color: '#111827',
+    color: '#000000',
+    letterSpacing: -0.4,
     marginBottom: 4,
   },
   modalSubtitle: {
-    fontSize: 12,
-    color: '#6b7280',
+    fontSize: 13,
+    color: '#8E8E93',
     marginBottom: 14,
+    lineHeight: 18,
   },
   modalInput: {
-    height: 72,
-    backgroundColor: '#f9fafb',
+    height: 76,
+    backgroundColor: '#F2F2F7',
     borderWidth: 1,
-    borderColor: '#d1d5db',
-    borderRadius: 8,
+    borderColor: '#E5E5EA',
+    borderRadius: 12,
     paddingHorizontal: 12,
-    paddingTop: 8,
+    paddingTop: 10,
     textAlignVertical: 'top',
-    fontSize: 13,
-    color: '#111827',
+    fontSize: 14,
+    color: '#000000',
     marginBottom: 16,
   },
   modalButtons: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
-    gap: 8,
+    gap: 10,
   },
   cancelBtn: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 10,
   },
   cancelBtnText: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '600',
-    color: '#6b7280',
+    color: '#8E8E93',
   },
   confirmRejectBtn: {
-    backgroundColor: '#dc2626',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 6,
+    backgroundColor: '#FF3B30',
+    paddingHorizontal: 18,
+    paddingVertical: 11,
+    borderRadius: 12,
   },
   confirmRejectBtnText: {
-    color: '#ffffff',
-    fontSize: 13,
-    fontWeight: '700',
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600',
+    letterSpacing: -0.1,
   },
   disabled: {
     opacity: 0.6,
   },
   pressed: {
-    opacity: 0.7,
+    opacity: 0.85,
+    transform: [{ scale: 0.98 }],
   },
 });

@@ -121,7 +121,9 @@ export function useAttendanceScanner(): UseAttendanceScannerReturn {
             time_slot: beacon.timeSlot,
             protocol_version: beacon.protocolVersion,
             rssi_median: agg.median,
+            rssi_samples: agg.samples,
             rssi_samples_count: agg.count,
+            request_id: Crypto.randomUUID(),
             client_request_id: Crypto.randomUUID(),
           };
 
@@ -130,7 +132,11 @@ export function useAttendanceScanner(): UseAttendanceScannerReturn {
             payload
           );
 
-          if (res.status === 'already_marked') {
+          const isAlready =
+            res.outcome_code === 'ALREADY_MARKED' ||
+            res.status === 'already_marked';
+
+          if (isAlready) {
             setStatus('Already marked');
             setLastMarked({
               sessionId: beacon.sessionId,
@@ -151,14 +157,18 @@ export function useAttendanceScanner(): UseAttendanceScannerReturn {
           setIsScanning(false);
         } catch (err: unknown) {
           const apiErr = err as ApiError;
+          const data = apiErr?.data as { detail?: { outcome_code?: string; message?: string } } | undefined;
+          const outcomeCode = data?.detail?.outcome_code || '';
           const msg = apiErr?.message || 'Attendance verification failed';
 
-          if (apiErr?.status === 403 && msg.toLowerCase().includes('device')) {
+          if (outcomeCode === 'NO_ACTIVE_DEVICE' || (apiErr?.status === 403 && msg.toLowerCase().includes('device'))) {
             setStatus('Device approval pending');
-          } else if (apiErr?.status === 403 && msg.toLowerCase().includes('enrolled')) {
+          } else if (outcomeCode === 'NOT_ENROLLED' || (apiErr?.status === 403 && msg.toLowerCase().includes('enrolled'))) {
             setStatus('Not enrolled');
-          } else if (msg.toLowerCase().includes('already marked')) {
+          } else if (outcomeCode === 'ALREADY_MARKED' || msg.toLowerCase().includes('already marked')) {
             setStatus('Already marked');
+          } else if (outcomeCode === 'SESSION_NOT_FOUND' || outcomeCode === 'SESSION_CLOSED' || outcomeCode === 'SESSION_EXPIRED') {
+            setStatus('Unable to verify');
           } else {
             setStatus('Unable to verify');
           }

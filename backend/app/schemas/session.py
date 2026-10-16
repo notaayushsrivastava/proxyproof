@@ -40,3 +40,6 @@ class ActiveSessionStudentView(BaseModel):
     ends_at: datetime
     proximity_threshold: int
     protocol_version: int
+    current_token: Optional[str] = None
+    current_time_slot: Optional[int] = None
+

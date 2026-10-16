@@ -1,15 +1,16 @@
 {
   "expo": {
-    "name": "frontend",
-    "slug": "frontend",
+    "name": "ProxyProof",
+    "slug": "proxyproof",
     "version": "1.0.0",
+    "description": "Verified classroom attendance, made effortless.",
+    "primaryColor": "#0B284C",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "frontend",
+    "scheme": "proxyproof",
     "userInterfaceStyle": "automatic",
     "ios": {
       "bundleIdentifier": "com.vinnovateit.proxyproof",
-      "icon": "./assets/expo.icon",
       "infoPlist": {
         "NSBluetoothAlwaysUsageDescription": "ProxyProof requires Bluetooth to broadcast and detect proximity beacons for automatic attendance validation.",
         "NSBluetoothPeripheralUsageDescription": "ProxyProof uses Bluetooth Low Energy to verify physical presence in class."
@@ -18,9 +19,8 @@
     "android": {
       "package": "com.vinnovateit.proxyproof",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#0B284C",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
@@ -35,14 +35,17 @@
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "name": "ProxyProof",
+      "shortName": "ProxyProof",
+      "favicon": "./assets/images/favicon.png",
+      "themeColor": "#0B284C"
     },
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#208AEF",
+          "backgroundColor": "#0B284C",
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 76
         }

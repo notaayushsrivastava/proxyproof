@@ -8,19 +8,39 @@ import '@/global.css';
 import { Platform } from 'react-native';
 
 export const Colors = {
+  // Brand tokens from docs/brand-guidelines.md
+  brand: {
+    primary: '#0B284C', // Deep Academic Navy
+    primaryDark: '#06172D',
+    primaryLight: '#E6ECF2',
+    secondary: '#009D96', // Signal Teal
+    secondaryDark: '#007671',
+    secondaryLight: '#E0F4F4',
+    accentBlue: '#007AFF', // System Accent
+    warningAmber: '#FF9500',
+    criticalRed: '#FF3B30',
+  },
   light: {
-    text: '#000000',
-    background: '#ffffff',
-    backgroundElement: '#F0F0F3',
-    backgroundSelected: '#E0E1E6',
-    textSecondary: '#60646C',
+    text: '#0B192C',
+    textSecondary: '#5A697E',
+    textMuted: '#8E9BAE',
+    background: '#F2F4F7',
+    backgroundElement: '#FFFFFF',
+    backgroundSelected: '#E0F4F4',
+    border: '#E2E6ED',
+    primary: '#0B284C',
+    accent: '#009D96',
   },
   dark: {
-    text: '#ffffff',
-    background: '#000000',
-    backgroundElement: '#212225',
-    backgroundSelected: '#2E3135',
-    textSecondary: '#B0B4BA',
+    text: '#F0F4F8',
+    textSecondary: '#8B9BB0',
+    textMuted: '#55667A',
+    background: '#0B111A',
+    backgroundElement: '#121A24',
+    backgroundSelected: '#1A2433',
+    border: '#223042',
+    primary: '#FFFFFF',
+    accent: '#009D96',
   },
 } as const;
 

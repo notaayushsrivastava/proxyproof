@@ -1,4 +1,6 @@
 import { Platform } from 'react-native';
+import Constants from 'expo-constants';
+import * as Crypto from 'expo-crypto';
 import { storage } from './storage';
 import {
   AuthResponse,
@@ -13,6 +15,7 @@ import {
   AttendanceSubmissionPayload,
   AttendanceSubmissionResponse,
   StudentAttendanceSummary,
+  ClassAttendanceSummary,
   StudentAttendanceRecord,
   AuditLogItem,
   User,
@@ -38,6 +41,22 @@ export class ApiError extends Error {
 export function getDefaultBaseUrl(): string {
   if (customBaseUrl) return customBaseUrl;
   if (process.env.EXPO_PUBLIC_API_URL) return process.env.EXPO_PUBLIC_API_URL;
+
+  // On Web: use current browser hostname
+  if (Platform.OS === 'web' && typeof window !== 'undefined' && window.location?.hostname) {
+    return `http://${window.location.hostname}:8000/api/v1`;
+  }
+
+  // On Native: dynamically resolve development machine IP from Expo bundler connection
+  try {
+    const hostUri = Constants.expoConfig?.hostUri || (Constants as unknown as { manifest?: { debuggerHost?: string } }).manifest?.debuggerHost;
+    if (hostUri) {
+      const host = hostUri.split(':')[0];
+      if (host && host !== 'localhost' && host !== '127.0.0.1') {
+        return `http://${host}:8000/api/v1`;
+      }
+    }
+  } catch {}
 
   if (Platform.OS === 'android') {
     return 'http://10.0.2.2:8000/api/v1';
@@ -85,10 +104,20 @@ async function request<T>(
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const response = await fetch(url, {
-    ...options,
-    headers,
-  });
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      ...options,
+      headers,
+    });
+  } catch (err: unknown) {
+    const msg = (err as Error)?.message || 'Network request failed';
+    throw new ApiError(
+      `Cannot connect to API server at ${baseUrl}. Ensure backend server is running. (${msg})`,
+      0,
+      err
+    );
+  }
 
   if (!response.ok) {
     let errorDetail = response.statusText;
@@ -96,11 +125,18 @@ async function request<T>(
     try {
       data = await response.json();
       if (data && typeof data === 'object') {
-        const d = data as { detail?: string | { msg?: string }[] };
+        const d = data as {
+          detail?: string | { msg?: string }[] | { message?: string; outcome_code?: string; [key: string]: unknown };
+          message?: string;
+        };
         if (typeof d.detail === 'string') {
           errorDetail = d.detail;
         } else if (Array.isArray(d.detail)) {
-          errorDetail = d.detail.map((err) => err.msg || JSON.stringify(err)).join(', ');
+          errorDetail = d.detail.map((err) => (typeof err === 'object' && err?.msg) || JSON.stringify(err)).join(', ');
+        } else if (d.detail && typeof d.detail === 'object') {
+          errorDetail = d.detail.message || d.detail.outcome_code || JSON.stringify(d.detail);
+        } else if (typeof d.message === 'string') {
+          errorDetail = d.message;
         }
       }
     } catch {
@@ -154,8 +190,14 @@ export const api = {
     });
   },
 
-  async getMyDevice(): Promise<Device> {
-    return request<Device>('/devices/me');
+  async getMyDevice(): Promise<Device | null> {
+    const res = await request<Device | Device[]>('/devices/me');
+    if (Array.isArray(res)) {
+      if (res.length === 0) return null;
+      const active = res.find((d) => d.status === 'active');
+      return active || res[0];
+    }
+    return res || null;
   },
 
   async requestDeviceChange(payload: {
@@ -206,13 +248,24 @@ export const api = {
     durationMinutes: number = 5,
     notes?: string
   ): Promise<SessionCreateResponse> {
-    return request<SessionCreateResponse>(`/classes/${classId}/sessions`, {
+    const raw = await request<SessionCreateResponse & { session?: SessionItem }>(`/classes/${classId}/sessions`, {
       method: 'POST',
       body: JSON.stringify({
         duration_minutes: durationMinutes,
         notes: notes || undefined,
       }),
     });
+
+    const sessionObj: SessionItem = raw.session || raw;
+    const secret = raw.beacon_secret || raw.session_secret || '';
+
+    return {
+      ...sessionObj,
+      session: sessionObj,
+      session_secret: secret,
+      beacon_secret: secret,
+      proof_validity_seconds: raw.proof_validity_seconds ?? 5,
+    };
   },
 
   async getActiveSessions(): Promise<SessionItem[]> {
@@ -243,11 +296,27 @@ export const api = {
     sessionId: string,
     payload: AttendanceSubmissionPayload
   ): Promise<AttendanceSubmissionResponse> {
+    const requestId =
+      payload.request_id ||
+      payload.client_request_id ||
+      (typeof Crypto !== 'undefined' && 'randomUUID' in Crypto
+        ? Crypto.randomUUID()
+        : `${Date.now()}-${Math.random()}`);
+
+    const body = {
+      proof: payload.proof,
+      time_slot: payload.time_slot,
+      request_id: requestId,
+      rssi_median: Math.round(payload.rssi_median),
+      rssi_samples: payload.rssi_samples || undefined,
+      device_signature: payload.device_signature || null,
+    };
+
     return request<AttendanceSubmissionResponse>(
       `/sessions/${sessionId}/attendance-attempts`,
       {
         method: 'POST',
-        body: JSON.stringify(payload),
+        body: JSON.stringify(body),
       }
     );
   },
@@ -278,7 +347,50 @@ export const api = {
 
   // --- STUDENTS ---
   async getMyAttendanceSummary(): Promise<StudentAttendanceSummary> {
-    return request<StudentAttendanceSummary>('/students/me/attendance-summary');
+    const raw = await request<ClassAttendanceSummary[] | StudentAttendanceSummary>(
+      '/students/me/attendance-summary'
+    );
+
+    // If backend returns array of ClassAttendanceSummary directly
+    if (Array.isArray(raw)) {
+      const classesList = raw.map((c) => ({
+        ...c,
+        attendance_percentage: c.attendance_percentage ?? c.percentage ?? 0,
+      }));
+
+      const totalCompleted = classesList.reduce(
+        (acc, c) => acc + (c.total_completed_sessions || 0),
+        0
+      );
+      const totalAttended = classesList.reduce(
+        (acc, c) => acc + (c.attended_sessions || 0),
+        0
+      );
+      const overallPct =
+        totalCompleted > 0
+          ? Math.round((totalAttended / totalCompleted) * 1000) / 10
+          : 0;
+
+      return {
+        total_eligible_sessions: totalCompleted,
+        attended_sessions: totalAttended,
+        overall_percentage: overallPct,
+        classes: classesList,
+      };
+    }
+
+    // If already in object shape
+    const classes = (raw.classes || []).map((c) => ({
+      ...c,
+      attendance_percentage: c.attendance_percentage ?? c.percentage ?? 0,
+    }));
+
+    return {
+      total_eligible_sessions: raw.total_eligible_sessions ?? 0,
+      attended_sessions: raw.attended_sessions ?? 0,
+      overall_percentage: raw.overall_percentage ?? 0,
+      classes,
+    };
   },
 
   async getMyAttendanceHistory(): Promise<StudentAttendanceRecord[]> {
@@ -307,5 +419,9 @@ export const api = {
 
   async getAuditLogs(limit: number = 50, offset: number = 0): Promise<AuditLogItem[]> {
     return request<AuditLogItem[]>(`/admin/audit-logs?limit=${limit}&offset=${offset}`);
+  },
+
+  async checkHealth(): Promise<{ status: string; database: string }> {
+    return request<{ status: string; database: string }>('/health');
   },
 };

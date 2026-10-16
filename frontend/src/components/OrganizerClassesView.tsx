@@ -143,9 +143,11 @@ export function OrganizerClassesView() {
           {selectedClass && (
             <View style={styles.card}>
               <View style={styles.rosterHeader}>
-                <View>
-                  <Text style={styles.className}>{selectedClass.name}</Text>
-                  <Text style={styles.classCode}>
+                <View style={styles.rosterHeaderLeft}>
+                  <Text style={styles.className} numberOfLines={1} ellipsizeMode="tail">
+                    {selectedClass.name}
+                  </Text>
+                  <Text style={styles.classCode} numberOfLines={1}>
                     Code: {selectedClass.code} &bull; {roster.length} Enrolled Students
                   </Text>
                 </View>
@@ -166,8 +168,10 @@ export function OrganizerClassesView() {
                 roster.map((m) => (
                   <View key={m.student_id} style={styles.memberRow}>
                     <View style={styles.memberInfo}>
-                      <Text style={styles.memberName}>{m.full_name}</Text>
-                      <Text style={styles.memberDetails}>
+                      <Text style={styles.memberName} numberOfLines={1} ellipsizeMode="tail">
+                        {m.full_name}
+                      </Text>
+                      <Text style={styles.memberDetails} numberOfLines={1} ellipsizeMode="tail">
                         Roll: {m.student_number || 'N/A'} &bull; {m.email}
                       </Text>
                       <Text style={styles.joinedDate}>
@@ -188,7 +192,7 @@ export function OrganizerClassesView() {
                             m.has_active_device ? styles.devActiveText : styles.devNoneText,
                           ]}
                         >
-                          {m.has_active_device ? 'DEVICE READY' : 'NO DEVICE'}
+                          {m.has_active_device ? 'PHONE READY' : 'NO PHONE'}
                         </Text>
                       </View>
 
@@ -213,7 +217,7 @@ export function OrganizerClassesView() {
           <View style={styles.modalBox}>
             <Text style={styles.modalTitle}>Enrol Student</Text>
             <Text style={styles.modalSubtitle}>
-              Enter the student&apos;s unique UUID identifier to enrol them in {selectedClass?.code}.
+              Enter the student ID to enroll them in {selectedClass?.code}.
             </Text>
 
             {addError && (
@@ -263,12 +267,12 @@ export function OrganizerClassesView() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9fafb',
+    backgroundColor: '#F2F2F7',
   },
   content: {
     padding: 16,
     gap: 16,
-    maxWidth: 640,
+    maxWidth: 600,
     width: '100%',
     alignSelf: 'center',
   },
@@ -278,98 +282,117 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   screenTitle: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: '700',
-    color: '#111827',
+    color: '#000000',
+    letterSpacing: -0.5,
   },
   refreshLink: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#2563eb',
+    color: '#007AFF',
   },
   chipsScroll: {
     flexDirection: 'row',
+    marginBottom: 4,
   },
   chip: {
-    backgroundColor: '#ffffff',
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    borderRadius: 10,
-    paddingHorizontal: 14,
+    backgroundColor: '#FFFFFF',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(0, 0, 0, 0.1)',
+    borderRadius: 14,
+    paddingHorizontal: 16,
     paddingVertical: 10,
     marginRight: 8,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 3,
+    elevation: 1,
   },
   chipSelected: {
-    backgroundColor: '#2563eb',
-    borderColor: '#1d4ed8',
+    backgroundColor: '#007AFF',
+    borderColor: '#007AFF',
+    shadowColor: '#007AFF',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 3,
   },
   chipTitle: {
     fontSize: 14,
-    fontWeight: '700',
-    color: '#1f2937',
+    fontWeight: '600',
+    color: '#000000',
+    letterSpacing: -0.2,
   },
   chipTitleSelected: {
-    color: '#ffffff',
+    color: '#FFFFFF',
   },
   chipSub: {
     fontSize: 11,
-    color: '#6b7280',
+    color: '#8E8E93',
     marginTop: 2,
+    fontWeight: '500',
   },
   chipSubSelected: {
-    color: '#bfdbfe',
+    color: 'rgba(255, 255, 255, 0.8)',
   },
   card: {
-    backgroundColor: '#ffffff',
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 18,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(0, 0, 0, 0.08)',
     shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 10,
+    elevation: 2,
   },
   rosterHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
-    paddingBottom: 12,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#E5E5EA',
+    paddingBottom: 14,
+  },
+  rosterHeaderLeft: {
+    flex: 1,
+    marginRight: 10,
+    minWidth: 0,
   },
   className: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '700',
-    color: '#111827',
+    color: '#000000',
+    letterSpacing: -0.4,
   },
   classCode: {
-    fontSize: 12,
-    color: '#6b7280',
+    fontSize: 13,
+    color: '#8E8E93',
     marginTop: 2,
   },
   addStudentBtn: {
-    backgroundColor: '#eff6ff',
-    borderWidth: 1,
-    borderColor: '#bfdbfe',
-    borderRadius: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
+    backgroundColor: 'rgba(0, 122, 255, 0.1)',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
   },
   addStudentBtnText: {
     fontSize: 12,
-    fontWeight: '700',
-    color: '#1d4ed8',
+    fontWeight: '600',
+    color: '#007AFF',
+    letterSpacing: -0.1,
   },
   memberRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
+    paddingVertical: 12,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#E5E5EA',
   },
   memberInfo: {
     gap: 2,
@@ -378,137 +401,151 @@ const styles = StyleSheet.create({
   memberName: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#111827',
+    color: '#000000',
+    letterSpacing: -0.2,
   },
   memberDetails: {
     fontSize: 12,
-    color: '#6b7280',
+    color: '#8E8E93',
   },
   joinedDate: {
     fontSize: 11,
-    color: '#9ca3af',
+    color: '#8E8E93',
   },
   memberRight: {
     alignItems: 'flex-end',
     gap: 6,
   },
   devicePill: {
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
   },
   devActive: {
-    backgroundColor: '#dcfce7',
+    backgroundColor: 'rgba(52, 199, 89, 0.12)',
   },
   devNone: {
-    backgroundColor: '#fee2e2',
+    backgroundColor: 'rgba(255, 59, 48, 0.12)',
   },
   devicePillText: {
     fontSize: 9,
     fontWeight: '700',
+    letterSpacing: 0.3,
   },
   devActiveText: {
-    color: '#15803d',
+    color: '#34C759',
   },
   devNoneText: {
-    color: '#b91c1c',
+    color: '#FF3B30',
   },
   removeBtn: {
     paddingVertical: 2,
   },
   removeBtnText: {
-    fontSize: 11,
-    color: '#dc2626',
-    fontWeight: '600',
+    fontSize: 12,
+    color: '#FF3B30',
+    fontWeight: '500',
   },
   emptyText: {
     fontSize: 13,
-    color: '#6b7280',
-    fontStyle: 'italic',
+    color: '#8E8E93',
     paddingVertical: 12,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 16,
+    padding: 20,
   },
   modalBox: {
     width: '100%',
-    maxWidth: 440,
-    backgroundColor: '#ffffff',
-    borderRadius: 12,
-    padding: 20,
+    maxWidth: 420,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    padding: 24,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.15,
+    shadowRadius: 24,
+    elevation: 8,
   },
   modalTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '700',
-    color: '#111827',
+    color: '#000000',
+    letterSpacing: -0.4,
     marginBottom: 4,
   },
   modalSubtitle: {
-    fontSize: 12,
-    color: '#6b7280',
+    fontSize: 13,
+    color: '#8E8E93',
     marginBottom: 16,
-    lineHeight: 16,
+    lineHeight: 18,
   },
   formGroup: {
-    marginBottom: 14,
+    marginBottom: 16,
   },
   inputLabel: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '600',
-    color: '#374151',
-    marginBottom: 4,
+    color: '#1C1C1E',
+    marginBottom: 6,
+    letterSpacing: -0.1,
   },
   input: {
-    height: 42,
-    backgroundColor: '#f9fafb',
+    height: 46,
+    backgroundColor: '#F2F2F7',
     borderWidth: 1,
-    borderColor: '#d1d5db',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    fontSize: 13,
-    color: '#111827',
+    borderColor: '#E5E5EA',
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    fontSize: 14,
+    color: '#000000',
   },
   errorBox: {
-    backgroundColor: '#fef2f2',
-    borderWidth: 1,
-    borderColor: '#fca5a5',
-    borderRadius: 6,
-    padding: 8,
+    backgroundColor: 'rgba(255, 59, 48, 0.1)',
+    borderRadius: 10,
+    padding: 10,
     marginBottom: 12,
   },
   errorText: {
     fontSize: 12,
-    color: '#b91c1c',
+    color: '#FF3B30',
+    fontWeight: '500',
   },
   modalButtons: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
-    gap: 8,
-    marginTop: 12,
+    gap: 10,
+    marginTop: 16,
   },
   cancelBtn: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 10,
   },
   cancelBtnText: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '600',
-    color: '#6b7280',
+    color: '#8E8E93',
   },
   submitBtn: {
-    backgroundColor: '#2563eb',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 6,
+    backgroundColor: '#007AFF',
+    paddingHorizontal: 18,
+    paddingVertical: 11,
+    borderRadius: 12,
+    shadowColor: '#007AFF',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 2,
   },
   submitBtnText: {
-    color: '#ffffff',
-    fontSize: 13,
-    fontWeight: '700',
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600',
+    letterSpacing: -0.1,
   },
   disabled: {
     opacity: 0.6,

@@ -79,6 +79,9 @@ async def validate_and_record_attendance(
             record=existing_record,
         )
 
+    # 2. Load session early for foreign-key safety
+    target_session = db.query(AttendanceSession).filter(AttendanceSession.id == session_id).first()
+
     # Helper to log attempt and return failure
     def log_and_fail(
         outcome_code: str,
@@ -87,7 +90,8 @@ async def validate_and_record_attendance(
     ) -> ValidationResult:
         attempt = AttendanceAttempt(
             id=uuid.uuid4(),
-            session_id=session_id,
+            # Only set session_id if the session exists in attendance_sessions to avoid FK violation
+            session_id=target_session.id if target_session else None,
             student_id=student.id,
             device_id=active_device_id,
             request_id=request_id,
@@ -98,15 +102,18 @@ async def validate_and_record_attendance(
             protocol_version=protocol_version,
             proof_time_slot=client_time_slot,
         )
-        db.add(attempt)
-        db.commit()
+        try:
+            db.add(attempt)
+            db.commit()
+        except Exception:
+            db.rollback()
         return ValidationResult(success=False, outcome_code=outcome_code, message=message)
 
-    # 2. Confirm student account is active
+    # 3. Confirm student account is active
     if student.account_status != AccountStatus.ACTIVE or student.role != UserRole.STUDENT:
         return log_and_fail("STUDENT_INACTIVE", "Student account is not active or unauthorized")
 
-    # 3. Resolve active registered device
+    # 4. Resolve active registered device
     active_device = (
         db.query(Device)
         .filter(Device.user_id == student.id, Device.status == DeviceStatus.ACTIVE)
@@ -115,8 +122,7 @@ async def validate_and_record_attendance(
     if not active_device:
         return log_and_fail("NO_ACTIVE_DEVICE", "Student does not have an approved active device registered")
 
-    # 4. Load session & reconcile auto-expiry
-    target_session = db.query(AttendanceSession).filter(AttendanceSession.id == session_id).first()
+    # 5. Check session existence
     if not target_session:
         return log_and_fail("SESSION_NOT_FOUND", "Attendance session not found", active_device.id)
 

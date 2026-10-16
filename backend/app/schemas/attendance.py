@@ -55,6 +55,7 @@ class ClassAttendanceSummary(BaseModel):
 
 
 class StudentAttendanceHistoryItem(BaseModel):
+    id: uuid.UUID
     session_id: uuid.UUID
     class_id: uuid.UUID
     class_name: str

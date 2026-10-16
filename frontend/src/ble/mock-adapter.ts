@@ -97,22 +97,40 @@ export class MockBeaconAdapter implements BeaconAdapter {
     this.scanTimer = setInterval(async () => {
       if (this.state !== 'scanning') return;
 
-      // If an organizer session is currently active in this mock instance, or mock session
-      const targetSessionId =
-        this.advertisingSessionId || 'd3b07384-d113-467a-9a91-4cf1534b12aa';
-      const targetSecret =
-        this.advertisingSecret || '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+      let targetSessionId = this.advertisingSessionId;
+      let targetSecret = this.advertisingSecret;
+      let slot = calculateTimeSlot() + this.simulatedSlotLag;
+      let proof: string | null = null;
 
-      const slot = calculateTimeSlot() + this.simulatedSlotLag;
-      const proof = await generateProof(
-        targetSecret,
-        targetSessionId,
-        slot
-      );
+      // In multi-phone testing or simulated receiver mode:
+      if (!targetSessionId || !targetSecret) {
+        try {
+          const { api } = await import('../services/api');
+          const activeSessions = await api.getActiveSessions().catch(() => []);
+          if (activeSessions && activeSessions.length > 0) {
+            const current = activeSessions[0];
+            targetSessionId = current.id;
+            if (current.current_token && current.current_time_slot) {
+              proof = current.current_token;
+              slot = current.current_time_slot;
+            }
+          }
+        } catch {
+          // fallback
+        }
+      }
+
+      // If still no session found, fall back to default demo mock session
+      targetSessionId = targetSessionId || 'd3b07384-d113-467a-9a91-4cf1534b12aa';
+      targetSecret =
+        targetSecret || '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+
+      if (!proof) {
+        proof = await generateProof(targetSecret, targetSessionId, slot);
+      }
 
       // Add Gaussian/jitter to simulated RSSI
-      const jitter =
-        (Math.random() * 2 - 1) * this.simulatedRSSIJitter;
+      const jitter = (Math.random() * 2 - 1) * this.simulatedRSSIJitter;
       const rssi = Math.round(this.simulatedRSSI + jitter);
 
       const beacon: DiscoveredBeacon = {
