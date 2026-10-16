@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -10,10 +10,10 @@ import {
   Platform,
   ScrollView,
 } from 'react-native';
-import { AlertCircle, ArrowLeft, Building2 } from 'lucide-react-native';
+import { ArrowLeft, Building2 } from 'lucide-react-native';
 import { useAuth } from '../store/auth';
-import { api, getDefaultBaseUrl } from '../services/api';
 import { Logo } from './ui/Logo';
+import { BackendStatusDot } from './BackendStatusDot';
 
 interface LoginViewProps {
   onNavigateToRegister?: () => void;
@@ -29,17 +29,6 @@ export function LoginView({
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const apiHost = getDefaultBaseUrl();
-  const [isHealthy, setIsHealthy] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    let mounted = true;
-    api.checkHealth()
-      .then(() => { if (mounted) setIsHealthy(true); })
-      .catch(() => { if (mounted) setIsHealthy(false); });
-    return () => { mounted = false; };
-  }, [apiHost]);
-
   const handleLogin = async () => {
     if (!email || !password) {
       setError('Please enter both email and password.');
@@ -64,6 +53,7 @@ export function LoginView({
     >
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.card}>
+          <BackendStatusDot style={styles.statusIndicator} />
           {/* Back Navigation Button */}
           {onNavigateToLanding && (
             <Pressable
@@ -87,15 +77,6 @@ export function LoginView({
               Sign in with your campus student, faculty, or administrator credentials
             </Text>
           </View>
-
-          {isHealthy === false && (
-            <View style={styles.warningBox}>
-              <AlertCircle size={15} color="#FF9500" strokeWidth={2.2} />
-              <Text style={styles.warningText}>
-                Cannot reach server at {apiHost}. Make sure the backend service is running.
-              </Text>
-            </View>
-          )}
 
           {error && (
             <View style={styles.errorBox}>
@@ -174,19 +155,6 @@ export function LoginView({
             </View>
           )}
 
-          <View style={styles.footerNote}>
-            <View style={styles.statusPillBadge}>
-              <View
-                style={[
-                  styles.statusDot,
-                  { backgroundColor: isHealthy ? '#34C759' : isHealthy === false ? '#FF3B30' : '#FF9500' },
-                ]}
-              />
-              <Text style={styles.footerNoteText}>
-                {apiHost} ({isHealthy ? 'Connected' : isHealthy === false ? 'Offline' : 'Connecting...'})
-              </Text>
-            </View>
-          </View>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -205,6 +173,7 @@ const styles = StyleSheet.create({
     padding: 24,
   },
   card: {
+    position: 'relative',
     width: '100%',
     maxWidth: 420,
     backgroundColor: '#FFFFFF',
@@ -263,22 +232,11 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     paddingHorizontal: 10,
   },
-  warningBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    backgroundColor: 'rgba(255, 149, 0, 0.1)',
-    borderRadius: 12,
-    padding: 10,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 149, 0, 0.25)',
-  },
-  warningText: {
-    flex: 1,
-    fontSize: 11.5,
-    color: '#D97706',
-    lineHeight: 15,
+  statusIndicator: {
+    position: 'absolute',
+    top: 14,
+    right: 14,
+    zIndex: 1,
   },
   errorBox: {
     backgroundColor: 'rgba(255, 59, 48, 0.1)',
@@ -378,28 +336,5 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
     color: '#FFFFFF',
-  },
-  footerNote: {
-    alignItems: 'center',
-    marginTop: 20,
-  },
-  statusPillBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    backgroundColor: '#F2F2F7',
-    borderRadius: 20,
-  },
-  statusDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-  },
-  footerNoteText: {
-    fontSize: 10.5,
-    color: '#8E8E93',
-    fontWeight: '500',
   },
 });

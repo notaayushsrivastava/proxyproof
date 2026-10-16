@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { Menu } from 'lucide-react-native';
 import { useAuth } from '../store/auth';
 import { Logo } from './ui/Logo';
+import { BackendStatusDot } from './BackendStatusDot';
 
 interface HeaderProps {
   pageTitle: string;
@@ -48,19 +49,22 @@ export function Header({ pageTitle, pageSubtitle, onOpenSidebar }: HeaderProps) 
         ) : null}
       </View>
 
-      <Pressable
-        style={({ pressed }) => [styles.sidebarButton, pressed && styles.sidebarButtonPressed]}
-        onPress={onOpenSidebar}
-        accessibilityRole="button"
-        accessibilityLabel="Open settings and profile"
-      >
-        <View style={styles.avatarMini}>
-          <Text style={styles.avatarMiniText}>
-            {user.full_name ? user.full_name.charAt(0).toUpperCase() : 'U'}
-          </Text>
-        </View>
-        <Menu size={18} color="#1C1C1E" strokeWidth={2.2} />
-      </Pressable>
+      <View style={styles.rightControls}>
+        <Pressable
+          style={({ pressed }) => [styles.sidebarButton, pressed && styles.sidebarButtonPressed]}
+          onPress={onOpenSidebar}
+          accessibilityRole="button"
+          accessibilityLabel="Open settings and profile"
+        >
+          <View style={styles.avatarMini}>
+            <Text style={styles.avatarMiniText}>
+              {user.full_name ? user.full_name.charAt(0).toUpperCase() : 'U'}
+            </Text>
+          </View>
+          <Menu size={18} color="#1C1C1E" strokeWidth={2.2} />
+        </Pressable>
+        <BackendStatusDot />
+      </View>
     </View>
   );
 }
@@ -126,6 +130,11 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: 'rgba(0, 0, 0, 0.08)',
+  },
+  rightControls: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
   },
   sidebarButtonPressed: {
     opacity: 0.7,

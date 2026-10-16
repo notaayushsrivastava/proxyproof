@@ -143,6 +143,7 @@ def test_session_lifecycle_and_attendance_validation(client: TestClient):
     assert res_future.json()["detail"]["outcome_code"] == "FUTURE_PROOF"
 
     # 9. Invalid token rejection
+    current_slot = int(datetime.now(timezone.utc).timestamp() // 5)
     res_invalid = client.post(
         f"/api/v1/sessions/{session_id}/attendance-attempts",
         json={
@@ -157,6 +158,9 @@ def test_session_lifecycle_and_attendance_validation(client: TestClient):
     assert res_invalid.json()["detail"]["outcome_code"] == "INVALID_PROOF"
 
     # 10. Proximity threshold failure (below -75 dBm)
+    current_slot = int(datetime.now(timezone.utc).timestamp() // 5)
+    valid_proof = derive_proof(secret_hex, session_id, current_slot)
+
     res_low_rssi = client.post(
         f"/api/v1/sessions/{session_id}/attendance-attempts",
         json={
@@ -171,6 +175,9 @@ def test_session_lifecycle_and_attendance_validation(client: TestClient):
     assert res_low_rssi.json()["detail"]["outcome_code"] == "BELOW_PROXIMITY_THRESHOLD"
 
     # 11. Unenrolled student rejection
+    current_slot = int(datetime.now(timezone.utc).timestamp() // 5)
+    valid_proof = derive_proof(secret_hex, session_id, current_slot)
+
     res_unenrolled = client.post(
         f"/api/v1/sessions/{session_id}/attendance-attempts",
         json={

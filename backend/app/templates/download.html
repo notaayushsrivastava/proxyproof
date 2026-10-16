@@ -13,6 +13,10 @@
   <link rel="apple-touch-icon" href="/static/favicon.svg">
   <link rel="canonical" href="https://proxyproof.internal/download">
 
+  <!-- Preload Flashbang Assets for instant zero-lag playback -->
+  <link rel="preload" href="/static/flashbang/audio.mp3" as="audio" type="audio/mpeg">
+  <link rel="preload" href="/static/flashbang/image.jpeg" as="image">
+
   <style>
     :root {
       --font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -512,7 +516,7 @@
     <!-- Download Cards -->
     <div class="platforms-grid">
       <!-- Apple iOS -->
-      <div class="platform-card">
+      <div class="platform-card" id="ios-card">
         <div>
           <div class="platform-header">
             <div class="platform-icon">
@@ -548,10 +552,10 @@
         </div>
 
         <div class="action-group">
-          <a href="https://testflight.apple.com" target="_blank" rel="noopener noreferrer" class="btn btn-primary">
+          <a href="https://testflight.apple.com" target="_blank" rel="noopener noreferrer" class="btn btn-primary" id="download-ios-testflight" data-download="ios">
             Join TestFlight Beta
           </a>
-          <a href="https://apps.apple.com" target="_blank" rel="noopener noreferrer" class="btn btn-secondary">
+          <a href="https://apps.apple.com" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" id="download-ios-appstore" data-download="ios">
             View on App Store
           </a>
         </div>
@@ -648,6 +652,7 @@
   </footer>
 
   <script src="/static/theme.js"></script>
+  <script src="/static/flashbang.js"></script>
   <!--
     const themeToggleBtn = document.getElementById('themeToggle');
     const themeIcon = document.getElementById('themeIcon');

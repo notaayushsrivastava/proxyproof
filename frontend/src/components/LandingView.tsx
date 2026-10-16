@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import {
+  Appearance,
   View,
   Text,
   StyleSheet,
@@ -7,6 +8,7 @@ import {
   ScrollView,
   Platform,
   Linking,
+  useColorScheme,
 } from 'react-native';
 import {
   Radio,
@@ -15,13 +17,16 @@ import {
   Building2,
   ArrowRight,
   Zap,
-  CheckCircle2,
-  Mail,
   Lock,
-  Layers,
+  Download,
+  Moon,
+  Sun,
 } from 'lucide-react-native';
 import { Logo } from './ui/Logo';
-import { api, getDefaultBaseUrl } from '../services/api';
+import { BackendStatusDot } from './BackendStatusDot';
+
+const APK_DOWNLOAD_URL =
+  'https://github.com/notaayushsrivastava/proxyproof/releases/latest/download/proxyproof.apk';
 
 interface LandingViewProps {
   onSignIn: () => void;
@@ -29,23 +34,21 @@ interface LandingViewProps {
 }
 
 export function LandingView({ onSignIn, onRegisterInstitution }: LandingViewProps) {
-  const [isServerHealthy, setIsServerHealthy] = useState<boolean | null>(null);
-  const apiHost = getDefaultBaseUrl();
-
-  useEffect(() => {
-    let mounted = true;
-    api.checkHealth()
-      .then(() => { if (mounted) setIsServerHealthy(true); })
-      .catch(() => { if (mounted) setIsServerHealthy(false); });
-    return () => { mounted = false; };
-  }, [apiHost]);
+  const systemScheme = useColorScheme();
+  const [isDark, setIsDark] = React.useState(systemScheme === 'dark');
+  const styles = createStyles(isDark);
+  const toggleTheme = () => {
+    const nextIsDark = !isDark;
+    setIsDark(nextIsDark);
+    Appearance.setColorScheme(nextIsDark ? 'dark' : 'light');
+  };
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {/* Top Navigation */}
       <View style={styles.navbar}>
         <View style={styles.brandRow}>
-          <Logo size={36} variant="mark" />
+          <Logo size={36} variant="mark" dark={isDark} />
           <View>
             <Text style={styles.brandTitle}>ProxyProof</Text>
             <Text style={styles.brandTagline}>Verified BLE Attendance</Text>
@@ -53,12 +56,22 @@ export function LandingView({ onSignIn, onRegisterInstitution }: LandingViewProp
         </View>
 
         <View style={styles.navActions}>
+          {Platform.OS === 'web' && (
+            <Pressable
+              style={({ pressed }) => [styles.themeToggle, pressed && styles.btnPressed]}
+              onPress={toggleTheme}
+              accessibilityRole="button"
+              accessibilityLabel={`Switch to ${isDark ? 'light' : 'dark'} theme`}
+            >
+              {isDark ? <Sun size={16} color={isDark ? '#F0F4F8' : '#0B284C'} /> : <Moon size={16} color={isDark ? '#F0F4F8' : '#0B284C'} />}
+            </Pressable>
+          )}
           <Pressable
             style={({ pressed }) => [styles.navBtnSecondary, pressed && styles.btnPressed]}
             onPress={onRegisterInstitution}
             accessibilityRole="button"
           >
-            <Building2 size={14} color="#0B284C" strokeWidth={2.2} />
+            <Building2 size={14} color={isDark ? '#F0F4F8' : '#0B284C'} strokeWidth={2.2} />
             <Text style={styles.navBtnSecondaryText}>Register</Text>
           </Pressable>
 
@@ -69,6 +82,7 @@ export function LandingView({ onSignIn, onRegisterInstitution }: LandingViewProp
           >
             <Text style={styles.navBtnPrimaryText}>Sign In</Text>
           </Pressable>
+          <BackendStatusDot style={styles.navStatusDot} />
         </View>
       </View>
 
@@ -100,25 +114,12 @@ export function LandingView({ onSignIn, onRegisterInstitution }: LandingViewProp
 
           <Pressable
             style={({ pressed }) => [styles.heroSecondaryBtn, pressed && styles.btnPressed]}
-            onPress={onRegisterInstitution}
+            onPress={() => Linking.openURL(APK_DOWNLOAD_URL)}
             accessibilityRole="button"
           >
-            <Building2 size={18} color="#0B284C" strokeWidth={2.2} />
-            <Text style={styles.heroSecondaryBtnText}>Register Institution</Text>
+            <Download size={18} color={isDark ? '#F0F4F8' : '#0B284C'} strokeWidth={2.2} />
+            <Text style={styles.heroSecondaryBtnText}>Download Android APK</Text>
           </Pressable>
-        </View>
-
-        {/* Server Status Pill */}
-        <View style={styles.statusRow}>
-          <View
-            style={[
-              styles.statusDot,
-              { backgroundColor: isServerHealthy ? '#34C759' : isServerHealthy === false ? '#FF3B30' : '#FF9500' },
-            ]}
-          />
-          <Text style={styles.statusText}>
-            Campus Core: {isServerHealthy ? 'Connected & Active' : isServerHealthy === false ? 'Offline' : 'Connecting...'}
-          </Text>
         </View>
       </View>
 
@@ -140,7 +141,7 @@ export function LandingView({ onSignIn, onRegisterInstitution }: LandingViewProp
 
           <View style={styles.featureCard}>
             <View style={[styles.iconCircle, { backgroundColor: 'rgba(11, 40, 76, 0.10)' }]}>
-              <Smartphone size={24} color="#0B284C" strokeWidth={2.2} />
+              <Smartphone size={24} color={isDark ? '#F0F4F8' : '#0B284C'} strokeWidth={2.2} />
             </View>
             <Text style={styles.featureTitle}>1 Student = 1 Phone</Text>
             <Text style={styles.featureDesc}>
@@ -183,7 +184,7 @@ export function LandingView({ onSignIn, onRegisterInstitution }: LandingViewProp
             <View style={styles.stepTextContent}>
               <Text style={styles.stepTitle}>Instructor Starts Session</Text>
               <Text style={styles.stepSub}>
-                Professor taps "Start Session" in their app. The phone begins transmitting an encrypted micro-beacon across the lecture hall.
+                Professor taps &quot;Start Session&quot; in their app. The phone begins transmitting an encrypted micro-beacon across the lecture hall.
               </Text>
             </View>
           </View>
@@ -248,10 +249,15 @@ export function LandingView({ onSignIn, onRegisterInstitution }: LandingViewProp
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (isDark: boolean) => {
+  const palette = isDark
+    ? { background: '#0B111A', surface: '#121A24', elevated: '#1A2433', text: '#F0F4F8', secondary: '#A9B6C7', muted: '#8291A5', border: 'rgba(255,255,255,0.09)', tint: 'rgba(240,244,248,0.08)', tintBorder: 'rgba(240,244,248,0.15)' }
+    : { background: '#F2F2F7', surface: '#FFFFFF', elevated: '#FFFFFF', text: '#0B284C', secondary: '#636366', muted: '#8E8E93', border: 'rgba(0,0,0,0.06)', tint: 'rgba(11,40,76,0.06)', tintBorder: 'rgba(11,40,76,0.12)' };
+
+  return StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: palette.background,
   },
   content: {
     paddingBottom: 48,
@@ -263,9 +269,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: Platform.OS === 'ios' ? 14 : 18,
     paddingBottom: 14,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: palette.surface,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(0,0,0,0.08)',
+    borderBottomColor: palette.border,
   },
   brandRow: {
     flexDirection: 'row',
@@ -275,18 +281,26 @@ const styles = StyleSheet.create({
   brandTitle: {
     fontSize: 17,
     fontWeight: '800',
-    color: '#0B284C',
+    color: palette.text,
     letterSpacing: -0.4,
   },
   brandTagline: {
     fontSize: 10,
     fontWeight: '600',
-    color: '#8E8E93',
+    color: palette.muted,
   },
   navActions: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+  },
+  themeToggle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: palette.tint,
   },
   navBtnSecondary: {
     flexDirection: 'row',
@@ -295,12 +309,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 7,
     borderRadius: 999,
-    backgroundColor: 'rgba(11, 40, 76, 0.08)',
+    backgroundColor: palette.tint,
   },
   navBtnSecondaryText: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#0B284C',
+    color: palette.text,
   },
   navBtnPrimary: {
     paddingHorizontal: 14,
@@ -318,9 +332,9 @@ const styles = StyleSheet.create({
     paddingTop: 36,
     paddingBottom: 32,
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: palette.surface,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(0,0,0,0.06)',
+    borderBottomColor: palette.border,
   },
   badgePill: {
     flexDirection: 'row',
@@ -343,7 +357,7 @@ const styles = StyleSheet.create({
   heroTitle: {
     fontSize: 30,
     fontWeight: '900',
-    color: '#0B284C',
+    color: palette.text,
     textAlign: 'center',
     letterSpacing: -0.8,
     lineHeight: 36,
@@ -351,7 +365,7 @@ const styles = StyleSheet.create({
   },
   heroSubtitle: {
     fontSize: 14.5,
-    color: '#636366',
+    color: palette.secondary,
     textAlign: 'center',
     lineHeight: 22,
     maxWidth: 420,
@@ -387,32 +401,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: 'rgba(11, 40, 76, 0.06)',
+    backgroundColor: palette.tint,
     paddingVertical: 14,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: 'rgba(11, 40, 76, 0.12)',
+    borderColor: palette.tintBorder,
   },
   heroSecondaryBtnText: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#0B284C',
+    color: palette.text,
   },
-  statusRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginTop: 4,
-  },
-  statusDot: {
-    width: 7,
-    height: 7,
-    borderRadius: 4,
-  },
-  statusText: {
-    fontSize: 11,
-    color: '#8E8E93',
-    fontWeight: '600',
+  navStatusDot: {
+    marginLeft: 2,
   },
   section: {
     paddingHorizontal: 20,
@@ -428,7 +429,7 @@ const styles = StyleSheet.create({
   sectionHeader: {
     fontSize: 22,
     fontWeight: '800',
-    color: '#0B284C',
+    color: palette.text,
     letterSpacing: -0.4,
     marginBottom: 18,
   },
@@ -436,11 +437,11 @@ const styles = StyleSheet.create({
     gap: 14,
   },
   featureCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: palette.elevated,
     borderRadius: 18,
     padding: 20,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(0,0,0,0.06)',
+    borderColor: palette.border,
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.04,
@@ -458,21 +459,21 @@ const styles = StyleSheet.create({
   featureTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#0B284C',
+    color: palette.text,
     marginBottom: 6,
   },
   featureDesc: {
     fontSize: 13,
-    color: '#636366',
+    color: palette.secondary,
     lineHeight: 19,
   },
   stepsList: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: palette.elevated,
     borderRadius: 20,
     padding: 20,
     gap: 20,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(0,0,0,0.06)',
+    borderColor: palette.border,
   },
   stepItem: {
     flexDirection: 'row',
@@ -497,12 +498,12 @@ const styles = StyleSheet.create({
   stepTitle: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#0B284C',
+    color: palette.text,
     marginBottom: 4,
   },
   stepSub: {
     fontSize: 12.5,
-    color: '#636366',
+    color: palette.secondary,
     lineHeight: 18,
   },
   institutionCalloutCard: {
@@ -566,10 +567,11 @@ const styles = StyleSheet.create({
   },
   copyrightText: {
     fontSize: 11,
-    color: '#8E8E93',
+    color: palette.muted,
   },
   btnPressed: {
     opacity: 0.85,
     transform: [{ scale: 0.98 }],
   },
-});
+  });
+};

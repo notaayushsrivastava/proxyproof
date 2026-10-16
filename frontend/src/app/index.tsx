@@ -75,10 +75,12 @@ export default function AppEntry() {
       );
     }
     return (
-      <LandingView
-        onSignIn={() => setUnauthScreen('login')}
-        onRegisterInstitution={() => setUnauthScreen('register')}
-      />
+      <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
+        <LandingView
+          onSignIn={() => setUnauthScreen('login')}
+          onRegisterInstitution={() => setUnauthScreen('register')}
+        />
+      </SafeAreaView>
     );
   }
 

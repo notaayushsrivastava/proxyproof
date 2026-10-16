@@ -44,12 +44,12 @@ export class ApiError extends Error {
 
 export function getDefaultBaseUrl(): string {
   if (customBaseUrl) return customBaseUrl;
-  if (process.env.EXPO_PUBLIC_API_URL) return process.env.EXPO_PUBLIC_API_URL;
 
-  // On Web: use current browser hostname
-  if (Platform.OS === 'web' && typeof window !== 'undefined' && window.location?.hostname) {
-    return `http://${window.location.hostname}:8000/api/v1`;
+  if (Platform.OS === 'web') {
+    return 'https://proxyproof.aayushsrivastava.com/v1/api';
   }
+
+  if (process.env.EXPO_PUBLIC_API_URL) return process.env.EXPO_PUBLIC_API_URL;
 
   // On Native: dynamically resolve development machine IP from Expo bundler connection
   try {
@@ -117,7 +117,7 @@ async function request<T>(
   } catch (err: unknown) {
     const msg = (err as Error)?.message || 'Network request failed';
     throw new ApiError(
-      `Cannot connect to API server at ${baseUrl}. Ensure backend server is running. (${msg})`,
+      `Request failed. Check your connection and try again. (${msg})`,
       0,
       err
     );

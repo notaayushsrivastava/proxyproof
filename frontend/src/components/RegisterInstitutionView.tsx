@@ -14,15 +14,11 @@ import {
   Building2,
   ShieldCheck,
   ArrowLeft,
-  Lock,
-  Mail,
-  User as UserIcon,
-  Globe,
-  Layers,
   CheckCircle2,
 } from 'lucide-react-native';
 import { useAuth } from '../store/auth';
 import { Logo } from './ui/Logo';
+import { BackendStatusDot } from './BackendStatusDot';
 
 interface RegisterInstitutionViewProps {
   onBackToLanding: () => void;
@@ -99,6 +95,7 @@ export function RegisterInstitutionView({
     >
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.card}>
+          <BackendStatusDot style={styles.statusIndicator} />
           {/* Back Navigation Button */}
           <Pressable
             style={({ pressed }) => [styles.backBtn, pressed && styles.btnPressed]}
@@ -315,6 +312,7 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   card: {
+    position: 'relative',
     width: '100%',
     maxWidth: 480,
     backgroundColor: '#FFFFFF',
@@ -335,6 +333,12 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     alignSelf: 'flex-start',
     marginBottom: 16,
+  },
+  statusIndicator: {
+    position: 'absolute',
+    top: 14,
+    right: 14,
+    zIndex: 1,
   },
   backBtnText: {
     fontSize: 13,

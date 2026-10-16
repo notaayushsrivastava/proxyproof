@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -12,18 +12,15 @@ import {
 import {
   X,
   LogOut,
-  User,
   Settings,
   Shield,
   Radio,
-  Wifi,
   Smartphone,
   CheckCircle2,
   Mail,
   ExternalLink,
 } from 'lucide-react-native';
 import { useAuth } from '../store/auth';
-import { api, getDefaultBaseUrl } from '../services/api';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -32,37 +29,6 @@ interface SidebarProps {
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const { user, logout } = useAuth();
-  const [isServerHealthy, setIsServerHealthy] = useState<boolean | null>(null);
-  const [isCheckingHealth, setIsCheckingHealth] = useState(false);
-  const apiHost = getDefaultBaseUrl();
-
-  const checkHealth = async () => {
-    setIsCheckingHealth(true);
-    try {
-      await api.checkHealth();
-      setIsServerHealthy(true);
-    } catch {
-      setIsServerHealthy(false);
-    } finally {
-      setIsCheckingHealth(false);
-    }
-  };
-
-  useEffect(() => {
-    let mounted = true;
-    if (isOpen) {
-      api.checkHealth()
-        .then(() => {
-          if (mounted) setIsServerHealthy(true);
-        })
-        .catch(() => {
-          if (mounted) setIsServerHealthy(false);
-        });
-    }
-    return () => {
-      mounted = false;
-    };
-  }, [isOpen]);
 
   if (!user) return null;
 
@@ -142,70 +108,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               </View>
             </View>
 
-            {/* Connection & Network Status */}
+            {/* Device Status */}
             <View style={styles.sectionCard}>
-              <Text style={styles.sectionHeader}>SYSTEM & CONNECTION</Text>
-
-              <View style={styles.statusRow}>
-                <View style={styles.statusRowLeft}>
-                  <Wifi size={16} color="#007AFF" strokeWidth={2.2} />
-                  <View>
-                    <Text style={styles.statusRowTitle}>Campus Backend</Text>
-                    <Text style={styles.statusRowSub} numberOfLines={1}>
-                      {apiHost}
-                    </Text>
-                  </View>
-                </View>
-
-                <Pressable
-                  style={[
-                    styles.healthPill,
-                    isServerHealthy === true
-                      ? styles.healthConnected
-                      : isServerHealthy === false
-                      ? styles.healthOffline
-                      : styles.healthChecking,
-                  ]}
-                  onPress={checkHealth}
-                  disabled={isCheckingHealth}
-                >
-                  <View
-                    style={[
-                      styles.dotIndicator,
-                      {
-                        backgroundColor:
-                          isServerHealthy === true
-                            ? '#34C759'
-                            : isServerHealthy === false
-                            ? '#FF3B30'
-                            : '#FF9500',
-                      },
-                    ]}
-                  />
-                  <Text
-                    style={[
-                      styles.healthText,
-                      {
-                        color:
-                          isServerHealthy === true
-                            ? '#34C759'
-                            : isServerHealthy === false
-                            ? '#FF3B30'
-                            : '#FF9500',
-                      },
-                    ]}
-                  >
-                    {isCheckingHealth
-                      ? 'Checking...'
-                      : isServerHealthy === true
-                      ? 'Connected'
-                      : isServerHealthy === false
-                      ? 'Offline'
-                      : 'Verifying...'}
-                  </Text>
-                </Pressable>
-              </View>
-
               <View style={styles.statusRow}>
                 <View style={styles.statusRowLeft}>
                   <Radio size={16} color="#34C759" strokeWidth={2.2} />
@@ -430,32 +334,6 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: '#8E8E93',
     marginTop: 1,
-  },
-  healthPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 100,
-  },
-  healthConnected: {
-    backgroundColor: 'rgba(52, 199, 89, 0.12)',
-  },
-  healthOffline: {
-    backgroundColor: 'rgba(255, 59, 48, 0.12)',
-  },
-  healthChecking: {
-    backgroundColor: 'rgba(255, 149, 0, 0.12)',
-  },
-  dotIndicator: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-  },
-  healthText: {
-    fontSize: 11,
-    fontWeight: '600',
   },
   badgeReady: {
     flexDirection: 'row',

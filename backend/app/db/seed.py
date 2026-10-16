@@ -119,7 +119,7 @@ def seed_database(db: Session, admin_only: bool = False):
             db.add(profile)
 
             # Register default active device
-            if email in ("student1@proxyproof.local", "alice@university.local", "student2@proxyproof.local"):
+            if email in ("student1@proxyproof.local", "alice@university.local", "student2@proxyproof.local", "student3@proxyproof.local"):
                 device = Device(
                     id=uuid.uuid4(),
                     user_id=student.id,
