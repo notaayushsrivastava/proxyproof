@@ -236,25 +236,3 @@ def test_classes_and_roster_permissions(client: TestClient):
         headers={"Authorization": f"Bearer {token_org}"},
     )
     assert res_remove.status_code == 200
-
-
-def test_admin_audit_logs_access(client: TestClient):
-    """Verifies that audit logs are strictly protected to the admin role."""
-    token_admin = get_token(client, "admin@proxyproof.local")
-    token_org = get_token(client, "organizer@proxyproof.local")
-
-    # Admin access succeeds
-    res_admin = client.get(
-        "/api/v1/admin/audit-logs",
-        headers={"Authorization": f"Bearer {token_admin}"},
-    )
-    assert res_admin.status_code == 200
-    logs = res_admin.json()
-    assert len(logs) > 0
-
-    # Non-admin access is rejected
-    res_org = client.get(
-        "/api/v1/admin/audit-logs",
-        headers={"Authorization": f"Bearer {token_org}"},
-    )
-    assert res_org.status_code == 403

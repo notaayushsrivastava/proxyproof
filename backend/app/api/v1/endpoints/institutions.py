@@ -1,5 +1,7 @@
 import uuid
 import re
+import csv
+import io
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
@@ -12,7 +14,6 @@ from backend.app.models.institution import Institution
 from backend.app.models.class_model import Class
 from backend.app.models.session import AttendanceSession
 from backend.app.models.device import DeviceChangeRequest
-from backend.app.models.audit import AuditLog
 from backend.app.models.enums import UserRole, AccountStatus, DeviceRequestStatus
 from backend.app.schemas.institution import (
     InstitutionRegisterRequest,
@@ -20,6 +21,10 @@ from backend.app.schemas.institution import (
     InstitutionResponse,
     InstitutionUpdateRequest,
     InstitutionStatsResponse,
+    FacultyCreateRequest,
+    FacultyResponse,
+    BulkCsvRequest,
+    BulkFacultyOperationResult,
 )
 
 router = APIRouter()
@@ -88,16 +93,7 @@ def register_institution(request: InstitutionRegisterRequest, db: Session = Depe
     db.add(institution)
     db.flush()
 
-    # Record Audit Event
-    audit = AuditLog(
-        id=uuid.uuid4(),
-        actor_id=admin_user.id,
-        action="REGISTER_INSTITUTION",
-        target_type="institution",
-        target_id=str(institution.id),
-        reason=f"Registered campus institution {institution.name} ({clean_code})",
-    )
-    db.add(audit)
+    admin_user.institution_id = institution.id
     db.commit()
     db.refresh(admin_user)
     db.refresh(institution)
@@ -166,15 +162,6 @@ def update_institution_settings(
     if payload.attendance_window_seconds is not None:
         institution.attendance_window_seconds = payload.attendance_window_seconds
 
-    audit = AuditLog(
-        id=uuid.uuid4(),
-        actor_id=current_admin.id,
-        action="UPDATE_INSTITUTION_POLICY",
-        target_type="institution",
-        target_id=str(institution.id),
-        reason="Updated institutional attendance rules and hardware policies",
-    )
-    db.add(audit)
     db.commit()
     db.refresh(institution)
     return institution
@@ -229,3 +216,172 @@ def get_institution_overview(
 def list_institutions(db: Session = Depends(get_db)):
     """Returns a directory of registered institutions on the platform."""
     return db.query(Institution).filter(Institution.status == "active").order_by(Institution.name.asc()).all()
+
+
+@router.get("/faculty", response_model=List[FacultyResponse])
+def list_institution_faculty(
+    current_admin: User = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    """Lists all faculty members associated with the administrator's institution."""
+    institution = db.query(Institution).filter(Institution.admin_user_id == current_admin.id).first()
+    if not institution and current_admin.institution_id:
+        institution = db.query(Institution).filter(Institution.id == current_admin.institution_id).first()
+    if not institution:
+        institution = db.query(Institution).order_by(Institution.created_at.desc()).first()
+
+    query = db.query(User).filter(User.role == UserRole.ORGANIZER)
+    if institution:
+        query = query.filter(
+            (User.institution_id == institution.id) |
+            (User.email.ilike(f"%@{institution.domain}"))
+        )
+    return query.order_by(User.created_at.desc()).all()
+
+
+@router.post("/faculty", response_model=FacultyResponse, status_code=status.HTTP_201_CREATED)
+def create_faculty_member(
+    payload: FacultyCreateRequest,
+    current_admin: User = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    """Creates a single faculty/instructor account under the administrator's institution."""
+    email = payload.email.strip().lower()
+    existing = db.query(User).filter(func.lower(User.email) == email).first()
+    if existing:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"An account with email '{email}' already exists.",
+        )
+
+    institution = db.query(Institution).filter(Institution.admin_user_id == current_admin.id).first()
+    if not institution and current_admin.institution_id:
+        institution = db.query(Institution).filter(Institution.id == current_admin.institution_id).first()
+    if not institution:
+        institution = db.query(Institution).order_by(Institution.created_at.desc()).first()
+
+    raw_password = payload.password if payload.password else "FacultyPass@2026"
+    faculty = User(
+        id=uuid.uuid4(),
+        email=email,
+        password_hash=hash_password(raw_password),
+        role=UserRole.ORGANIZER,
+        full_name=payload.full_name.strip(),
+        department=payload.department.strip() if payload.department else (institution.department if institution else None),
+        institution_id=institution.id if institution else None,
+        account_status=AccountStatus.ACTIVE,
+    )
+    db.add(faculty)
+    db.commit()
+    db.refresh(faculty)
+    return faculty
+
+
+@router.post("/faculty/bulk-csv", response_model=BulkFacultyOperationResult)
+def bulk_upload_faculty_csv(
+    payload: BulkCsvRequest,
+    current_admin: User = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    """Parses a CSV text payload and creates faculty members in bulk."""
+    institution = db.query(Institution).filter(Institution.admin_user_id == current_admin.id).first()
+    if not institution and current_admin.institution_id:
+        institution = db.query(Institution).filter(Institution.id == current_admin.institution_id).first()
+    if not institution:
+        institution = db.query(Institution).order_by(Institution.created_at.desc()).first()
+
+    csv_text = payload.csv_content.strip()
+    if not csv_text:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="CSV content cannot be empty.",
+        )
+
+    reader = csv.reader(io.StringIO(csv_text))
+    created_list = []
+    errors = []
+    created_count = 0
+    failed_count = 0
+
+    header_skipped = False
+    for row_idx, row in enumerate(reader, start=1):
+        clean_row = [c.strip() for c in row if c is not None]
+        if not clean_row or not any(clean_row):
+            continue
+
+        # Header detection
+        first_cell = clean_row[0].lower()
+        has_email = any("@" in c for c in clean_row)
+        normalized_first = first_cell.replace(" ", "_").replace("-", "_")
+        if not header_skipped and (
+            normalized_first in ["name", "full_name", "fullname", "faculty_name", "faculty", "email"]
+            or not has_email
+        ):
+            header_skipped = True
+            continue
+
+        if len(clean_row) < 2:
+            errors.append(f"Row {row_idx}: Insufficient columns. Need at least Name and Email.")
+            failed_count += 1
+            continue
+
+        if "@" in clean_row[0] and "@" not in clean_row[1]:
+            email = clean_row[0].lower()
+            name = clean_row[1]
+            dept = clean_row[2] if len(clean_row) > 2 and clean_row[2] else None
+            pwd = clean_row[3] if len(clean_row) > 3 and clean_row[3] else "FacultyPass@2026"
+        else:
+            name = clean_row[0]
+            email = clean_row[1].lower()
+            dept = clean_row[2] if len(clean_row) > 2 and clean_row[2] else None
+            pwd = clean_row[3] if len(clean_row) > 3 and clean_row[3] else "FacultyPass@2026"
+
+        if not email or "@" not in email:
+            errors.append(f"Row {row_idx}: Invalid email '{email}'.")
+            failed_count += 1
+            continue
+
+        if not name:
+            errors.append(f"Row {row_idx}: Name cannot be empty.")
+            failed_count += 1
+            continue
+
+        # Check existing email
+        existing = db.query(User).filter(func.lower(User.email) == email).first()
+        if existing:
+            errors.append(f"Row {row_idx}: Account with email '{email}' already exists (skipped).")
+            failed_count += 1
+            continue
+
+        try:
+            faculty = User(
+                id=uuid.uuid4(),
+                email=email,
+                password_hash=hash_password(pwd),
+                role=UserRole.ORGANIZER,
+                full_name=name,
+                department=dept or (institution.department if institution else None),
+                institution_id=institution.id if institution else None,
+                account_status=AccountStatus.ACTIVE,
+            )
+            db.add(faculty)
+            db.flush()
+            created_list.append(faculty)
+            created_count += 1
+        except Exception as exc:
+            errors.append(f"Row {row_idx}: Error creating '{email}': {str(exc)}")
+            failed_count += 1
+
+    if created_count > 0:
+        db.commit()
+        for f in created_list:
+            db.refresh(f)
+
+    return BulkFacultyOperationResult(
+        created_count=created_count,
+        failed_count=failed_count,
+        errors=errors,
+        faculty=[FacultyResponse.model_validate(f) for f in created_list],
+        message=f"Successfully provisioned {created_count} faculty account(s)."
+        + (f" {failed_count} row(s) had errors or were skipped." if failed_count > 0 else ""),
+    )

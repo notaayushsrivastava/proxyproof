@@ -10,7 +10,6 @@ from backend.app.models import (
     AttendanceSession,
     AttendanceRecord,
     AttendanceAttempt,
-    AuditLog,
     Institution,
 )
 

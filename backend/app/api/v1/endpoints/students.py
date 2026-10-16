@@ -1,17 +1,51 @@
 from datetime import datetime, timezone
-from typing import List
+from typing import List, Optional
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from backend.app.db.session import get_db
-from backend.app.core.dependencies import get_current_student
+from backend.app.core.dependencies import get_current_student, get_current_user
 from backend.app.models import User, Class, ClassMembership, AttendanceSession, AttendanceRecord
-from backend.app.models.enums import AttendanceStatus, SessionStatus
+from backend.app.models.user import StudentProfile
+from backend.app.models.enums import AttendanceStatus, SessionStatus, UserRole
 from backend.app.schemas.attendance import (
     ClassAttendanceSummary,
     StudentAttendanceHistoryItem,
 )
+from backend.app.schemas.class_schema import StudentResponse
 
 router = APIRouter()
+
+
+@router.get("/students", response_model=List[StudentResponse])
+def list_students(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Lists students accessible to the organizer or administrator."""
+    query = (
+        db.query(User, StudentProfile)
+        .outerjoin(StudentProfile, StudentProfile.user_id == User.id)
+        .filter(User.role == UserRole.STUDENT)
+    )
+    if current_user.institution_id:
+        query = query.filter(User.institution_id == current_user.institution_id)
+
+    results = query.order_by(User.created_at.desc()).all()
+    out = []
+    for user, profile in results:
+        out.append(
+            StudentResponse(
+                id=user.id,
+                full_name=user.full_name,
+                email=user.email,
+                student_number=profile.student_number if profile else None,
+                department=user.department or (profile.department if profile else None),
+                role=user.role.value,
+                account_status=user.account_status.value,
+                created_at=user.created_at,
+            )
+        )
+    return out
 
 
 @router.get("/students/me/attendance-summary", response_model=List[ClassAttendanceSummary])

@@ -163,17 +163,6 @@ export interface StudentAttendanceRecord {
   reason?: string;
 }
 
-export interface AuditLogItem {
-  id: string;
-  actor_user_id?: string;
-  action: string;
-  target_type: string;
-  target_id?: string;
-  timestamp: string;
-  reason?: string;
-  metadata_json?: Record<string, unknown>;
-}
-
 export interface Institution {
   id: string;
   name: string;
@@ -212,4 +201,54 @@ export interface InstitutionOverviewStats {
   total_students: number;
   total_sessions: number;
   pending_device_requests: number;
+}
+
+export interface FacultyMember {
+  id: string;
+  email: string;
+  full_name: string;
+  role: string;
+  department?: string | null;
+  account_status: string;
+  created_at?: string;
+}
+
+export interface FacultyCreatePayload {
+  full_name: string;
+  email: string;
+  department?: string;
+  password?: string;
+}
+
+export interface BulkFacultyCsvPayload {
+  csv_content: string;
+}
+
+export interface BulkFacultyResult {
+  created_count: number;
+  failed_count: number;
+  errors: string[];
+  message: string;
+  created_faculty: FacultyMember[];
+}
+
+export interface StudentCreatePayload {
+  full_name: string;
+  email: string;
+  student_number: string;
+  department?: string;
+  password?: string;
+}
+
+export interface BulkStudentCsvPayload {
+  csv_content: string;
+  class_id?: string;
+}
+
+export interface BulkStudentResult {
+  created_count: number;
+  enrolled_count: number;
+  failed_count: number;
+  errors: string[];
+  message: string;
 }

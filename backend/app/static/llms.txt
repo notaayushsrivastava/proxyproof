@@ -3,8 +3,9 @@
 > Institutional Anti-Proxy Attendance Verification Platform
 > Author & Creator: Aayush Srivastava (https://aayushsrivastava.com)
 > Direct Contact: aayush@aayushsrivastava.com
-> Downloads: /download (iOS & Android releases)
-> Support & Inquiries: /contact
+> Website & Backend: https://proxyproof.aayushsrivastava.com
+> Downloads: https://proxyproof.aayushsrivastava.com/download (iOS & Android releases)
+> Support & Inquiries: https://proxyproof.aayushsrivastava.com/contact
 > Copyright: (c) 2026 ProxyProof. All rights reserved.
 
 ## System Overview

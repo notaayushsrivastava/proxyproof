@@ -52,3 +52,34 @@ class InstitutionStatsResponse(BaseModel):
     total_students: int
     total_sessions: int
     pending_device_requests: int
+
+
+class FacultyCreateRequest(BaseModel):
+    full_name: str = Field(..., min_length=2, max_length=255)
+    email: str = Field(..., max_length=255)
+    department: Optional[str] = Field(None, max_length=128)
+    password: Optional[str] = Field(None, min_length=6, max_length=128)
+
+
+class FacultyResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    full_name: str
+    email: str
+    department: Optional[str] = None
+    role: str
+    account_status: str
+    created_at: datetime
+
+
+class BulkCsvRequest(BaseModel):
+    csv_content: str
+
+
+class BulkFacultyOperationResult(BaseModel):
+    created_count: int
+    failed_count: int
+    errors: list[str] = []
+    faculty: list[FacultyResponse] = []
+    message: str

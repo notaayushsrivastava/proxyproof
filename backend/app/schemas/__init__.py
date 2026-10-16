@@ -17,7 +17,6 @@ from backend.app.schemas.class_schema import (
     RosterMemberResponse,
     AddMemberRequest,
 )
-from backend.app.schemas.audit import AuditLogResponse
 
 __all__ = [
     "LoginRequest",
@@ -33,5 +32,4 @@ __all__ = [
     "ClassResponse",
     "RosterMemberResponse",
     "AddMemberRequest",
-    "AuditLogResponse",
 ]

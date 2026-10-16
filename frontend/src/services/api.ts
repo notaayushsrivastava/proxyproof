@@ -17,12 +17,16 @@ import {
   StudentAttendanceSummary,
   ClassAttendanceSummary,
   StudentAttendanceRecord,
-  AuditLogItem,
   User,
   Institution,
   InstitutionRegisterPayload,
   InstitutionRegisterResponse,
   InstitutionOverviewStats,
+  FacultyMember,
+  FacultyCreatePayload,
+  BulkFacultyResult,
+  StudentCreatePayload,
+  BulkStudentResult,
 } from '../types/api';
 
 const TOKEN_STORAGE_KEY = 'proxyproof_auth_token';
@@ -42,16 +46,19 @@ export class ApiError extends Error {
   }
 }
 
+export const PRODUCTION_API_URL = 'https://proxyproof.aayushsrivastava.com/api/v1';
+
 export function getDefaultBaseUrl(): string {
   if (customBaseUrl) return customBaseUrl;
 
-  if (Platform.OS === 'web') {
-    return 'https://proxyproof.aayushsrivastava.com/v1/api';
-  }
-
   if (process.env.EXPO_PUBLIC_API_URL) return process.env.EXPO_PUBLIC_API_URL;
 
-  // On Native: dynamically resolve development machine IP from Expo bundler connection
+  // On Web or in production builds (iOS / Android release), use the production backend
+  if (Platform.OS === 'web' || !__DEV__) {
+    return PRODUCTION_API_URL;
+  }
+
+  // On Native development: dynamically resolve development machine IP from Expo bundler connection
   try {
     const hostUri = Constants.expoConfig?.hostUri || (Constants as unknown as { manifest?: { debuggerHost?: string } }).manifest?.debuggerHost;
     if (hostUri) {
@@ -223,6 +230,13 @@ export const api = {
   // --- CLASSES ---
   async getClasses(): Promise<ClassItem[]> {
     return request<ClassItem[]>('/classes');
+  },
+
+  async createClass(payload: { name: string; code: string; description?: string }): Promise<ClassItem> {
+    return request<ClassItem>('/classes', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
   },
 
   async getClass(classId: string): Promise<ClassItem> {
@@ -421,10 +435,6 @@ export const api = {
     });
   },
 
-  async getAuditLogs(limit: number = 50, offset: number = 0): Promise<AuditLogItem[]> {
-    return request<AuditLogItem[]>(`/admin/audit-logs?limit=${limit}&offset=${offset}`);
-  },
-
   // --- INSTITUTIONS ---
   async registerInstitution(data: InstitutionRegisterPayload): Promise<InstitutionRegisterResponse> {
     const res = await request<InstitutionRegisterResponse>('/institutions/register', {
@@ -454,6 +464,43 @@ export const api = {
 
   async listInstitutions(): Promise<Institution[]> {
     return request<Institution[]>('/institutions/list');
+  },
+
+  async listFaculty(): Promise<FacultyMember[]> {
+    return request<FacultyMember[]>('/institutions/faculty');
+  },
+
+  async createFaculty(data: FacultyCreatePayload): Promise<FacultyMember> {
+    return request<FacultyMember>('/institutions/faculty', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  async bulkUploadFacultyCsv(csv_content: string): Promise<BulkFacultyResult> {
+    return request<BulkFacultyResult>('/institutions/faculty/bulk-csv', {
+      method: 'POST',
+      body: JSON.stringify({ csv_content }),
+    });
+  },
+
+  // --- STUDENT & ROSTER WORKFLOWS ---
+  async createAndEnrollStudent(classId: string, data: StudentCreatePayload): Promise<RosterMember> {
+    return request<RosterMember>(`/classes/${classId}/students`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  async bulkUploadRosterCsv(classId: string, csv_content: string): Promise<BulkStudentResult> {
+    return request<BulkStudentResult>(`/classes/${classId}/students/bulk-csv`, {
+      method: 'POST',
+      body: JSON.stringify({ csv_content }),
+    });
+  },
+
+  async listAllStudents(): Promise<RosterMember[]> {
+    return request<RosterMember[]>('/students');
   },
 
   async checkHealth(): Promise<{ status: string; database: string }> {

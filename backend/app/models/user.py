@@ -15,6 +15,10 @@ class User(Base):
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     role: Mapped[UserRole] = mapped_column(Enum(UserRole), nullable=False, index=True)
     full_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    department: Mapped[Optional[str]] = mapped_column(String(128), nullable=True)
+    institution_id: Mapped[Optional[uuid.UUID]] = mapped_column(
+        ForeignKey("institutions.id", ondelete="SET NULL"), nullable=True, index=True
+    )
     account_status: Mapped[AccountStatus] = mapped_column(
         Enum(AccountStatus), default=AccountStatus.ACTIVE, nullable=False
     )

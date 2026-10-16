@@ -1,6 +1,5 @@
 import React from 'react';
 import {
-  Appearance,
   View,
   Text,
   StyleSheet,
@@ -8,7 +7,6 @@ import {
   ScrollView,
   Platform,
   Linking,
-  useColorScheme,
 } from 'react-native';
 import {
   Radio,
@@ -17,10 +15,8 @@ import {
   Building2,
   ArrowRight,
   Zap,
-  Lock,
   Download,
-  Moon,
-  Sun,
+  Users,
 } from 'lucide-react-native';
 import { Logo } from './ui/Logo';
 import { BackendStatusDot } from './BackendStatusDot';
@@ -34,21 +30,12 @@ interface LandingViewProps {
 }
 
 export function LandingView({ onSignIn, onRegisterInstitution }: LandingViewProps) {
-  const systemScheme = useColorScheme();
-  const [isDark, setIsDark] = React.useState(systemScheme === 'dark');
-  const styles = createStyles(isDark);
-  const toggleTheme = () => {
-    const nextIsDark = !isDark;
-    setIsDark(nextIsDark);
-    Appearance.setColorScheme(nextIsDark ? 'dark' : 'light');
-  };
-
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {/* Top Navigation */}
       <View style={styles.navbar}>
         <View style={styles.brandRow}>
-          <Logo size={36} variant="mark" dark={isDark} />
+          <Logo size={36} variant="mark" dark={false} />
           <View>
             <Text style={styles.brandTitle}>ProxyProof</Text>
             <Text style={styles.brandTagline}>Verified BLE Attendance</Text>
@@ -56,22 +43,12 @@ export function LandingView({ onSignIn, onRegisterInstitution }: LandingViewProp
         </View>
 
         <View style={styles.navActions}>
-          {Platform.OS === 'web' && (
-            <Pressable
-              style={({ pressed }) => [styles.themeToggle, pressed && styles.btnPressed]}
-              onPress={toggleTheme}
-              accessibilityRole="button"
-              accessibilityLabel={`Switch to ${isDark ? 'light' : 'dark'} theme`}
-            >
-              {isDark ? <Sun size={16} color={isDark ? '#F0F4F8' : '#0B284C'} /> : <Moon size={16} color={isDark ? '#F0F4F8' : '#0B284C'} />}
-            </Pressable>
-          )}
           <Pressable
             style={({ pressed }) => [styles.navBtnSecondary, pressed && styles.btnPressed]}
             onPress={onRegisterInstitution}
             accessibilityRole="button"
           >
-            <Building2 size={14} color={isDark ? '#F0F4F8' : '#0B284C'} strokeWidth={2.2} />
+            <Building2 size={14} color="#0B284C" strokeWidth={2.2} />
             <Text style={styles.navBtnSecondaryText}>Register</Text>
           </Pressable>
 
@@ -98,35 +75,49 @@ export function LandingView({ onSignIn, onRegisterInstitution }: LandingViewProp
         </Text>
 
         <Text style={styles.heroSubtitle}>
-          Cryptographic Bluetooth Low Energy beacons combined with hardware-locked device identity. 100% verified physical presence, zero buddy punching.
+          Rotating Bluetooth Low Energy beacons verify student physical presence in under 350ms. No QR code sharing, no WhatsApp forwarding, no proxy attendance.
         </Text>
 
-        {/* CTA Button Group */}
         <View style={styles.heroButtonGroup}>
           <Pressable
             style={({ pressed }) => [styles.heroPrimaryBtn, pressed && styles.btnPressed]}
             onPress={onSignIn}
             accessibilityRole="button"
           >
-            <Text style={styles.heroPrimaryBtnText}>Sign In to Campus</Text>
-            <ArrowRight size={18} color="#FFFFFF" strokeWidth={2.4} />
+            <Text style={styles.heroPrimaryBtnText}>Launch Portal</Text>
+            <ArrowRight size={16} color="#FFFFFF" strokeWidth={2.4} />
           </Pressable>
 
           <Pressable
             style={({ pressed }) => [styles.heroSecondaryBtn, pressed && styles.btnPressed]}
-            onPress={() => Linking.openURL(APK_DOWNLOAD_URL)}
+            onPress={onRegisterInstitution}
             accessibilityRole="button"
           >
-            <Download size={18} color={isDark ? '#F0F4F8' : '#0B284C'} strokeWidth={2.2} />
-            <Text style={styles.heroSecondaryBtnText}>Download Android APK</Text>
+            <Building2 size={16} color="#0B284C" strokeWidth={2.2} />
+            <Text style={styles.heroSecondaryBtnText}>Register Your Institution</Text>
+          </Pressable>
+
+          <Pressable
+            style={({ pressed }) => [styles.heroDownloadBtn, pressed && styles.btnPressed]}
+            onPress={() => {
+              if (Platform.OS === 'web') {
+                window.location.href = '/download';
+              } else {
+                Linking.openURL(APK_DOWNLOAD_URL).catch(() => {});
+              }
+            }}
+            accessibilityRole="button"
+          >
+            <Download size={15} color="#009D96" strokeWidth={2.2} />
+            <Text style={styles.heroDownloadBtnText}>Download Mobile App</Text>
           </Pressable>
         </View>
       </View>
 
-      {/* Value Pillars */}
+      {/* Key Architectural Pillars */}
       <View style={styles.section}>
         <Text style={styles.sectionKicker}>SECURITY ARCHITECTURE</Text>
-        <Text style={styles.sectionHeader}>Why Universities Trust ProxyProof</Text>
+        <Text style={styles.sectionHeader}>Why Legacy Methods Fail</Text>
 
         <View style={styles.featuresGrid}>
           <View style={styles.featureCard}>
@@ -140,8 +131,8 @@ export function LandingView({ onSignIn, onRegisterInstitution }: LandingViewProp
           </View>
 
           <View style={styles.featureCard}>
-            <View style={[styles.iconCircle, { backgroundColor: 'rgba(11, 40, 76, 0.10)' }]}>
-              <Smartphone size={24} color={isDark ? '#F0F4F8' : '#0B284C'} strokeWidth={2.2} />
+            <View style={[styles.iconCircle, { backgroundColor: 'rgba(11, 40, 76, 0.08)' }]}>
+              <Smartphone size={24} color="#0B284C" strokeWidth={2.2} />
             </View>
             <Text style={styles.featureTitle}>1 Student = 1 Phone</Text>
             <Text style={styles.featureDesc}>
@@ -160,12 +151,12 @@ export function LandingView({ onSignIn, onRegisterInstitution }: LandingViewProp
           </View>
 
           <View style={styles.featureCard}>
-            <View style={[styles.iconCircle, { backgroundColor: 'rgba(255, 45, 85, 0.10)' }]}>
-              <Lock size={24} color="#FF2D55" strokeWidth={2.2} />
+            <View style={[styles.iconCircle, { backgroundColor: 'rgba(0, 122, 255, 0.10)' }]}>
+              <Users size={24} color="#007AFF" strokeWidth={2.2} />
             </View>
-            <Text style={styles.featureTitle}>Immutable Audit Trail</Text>
+            <Text style={styles.featureTitle}>Roster &amp; Faculty Management</Text>
             <Text style={styles.featureDesc}>
-              Every verification attempt, device change, and manual modification is logged with timestamps and cryptographic proof for academic compliance.
+              Single-click CSV roster imports, individual instructor onboarding, and automatic student roll-number synchronization across courses.
             </Text>
           </View>
         </View>
@@ -206,9 +197,9 @@ export function LandingView({ onSignIn, onRegisterInstitution }: LandingViewProp
               <Text style={styles.stepNumberText}>3</Text>
             </View>
             <View style={styles.stepTextContent}>
-              <Text style={styles.stepTitle}>Live Ledger &amp; Export</Text>
+              <Text style={styles.stepTitle}>Live Dashboard Updates</Text>
               <Text style={styles.stepSub}>
-                Faculty view live check-ins on their screen and export clean attendance sheets or integrate directly with campus LMS systems.
+                The instructor views real-time attendance counts on screen and closes the session when the lecture begins.
               </Text>
             </View>
           </View>
@@ -218,46 +209,53 @@ export function LandingView({ onSignIn, onRegisterInstitution }: LandingViewProp
       {/* Institutional Callout */}
       <View style={styles.institutionCalloutCard}>
         <View style={styles.calloutHeader}>
-          <Building2 size={24} color="#009D96" strokeWidth={2.2} />
+          <Building2 size={24} color="#FFFFFF" strokeWidth={2} />
           <Text style={styles.calloutTitle}>Deploy Across Your Campus</Text>
         </View>
         <Text style={styles.calloutBody}>
-          Setup takes less than 2 minutes. Register your university, college, or department to grant management access, enforce device policies, and eliminate attendance fraud.
+          Replace expensive biometric turnstiles and paper rosters with high-speed Bluetooth verification. Designed for university lectures, laboratories, and institutional audits.
         </Text>
         <Pressable
           style={({ pressed }) => [styles.calloutBtn, pressed && styles.btnPressed]}
           onPress={onRegisterInstitution}
           accessibilityRole="button"
         >
-          <Text style={styles.calloutBtnText}>Register Your Institution</Text>
-          <ArrowRight size={16} color="#FFFFFF" strokeWidth={2.4} />
+          <Text style={styles.calloutBtnText}>Register Institution Free</Text>
+          <ArrowRight size={16} color="#FFFFFF" strokeWidth={2.2} />
         </Pressable>
       </View>
 
       {/* Footer */}
       <View style={styles.footer}>
         <View style={styles.footerLinks}>
-          <Pressable onPress={() => Linking.openURL('mailto:aayush@aayushsrivastava.com')}>
-            <Text style={styles.footerLinkText}>Inquiries: aayush@aayushsrivastava.com</Text>
+          <Pressable onPress={() => Linking.openURL('https://proxyproof.aayushsrivastava.com/privacy')}>
+            <Text style={styles.footerLinkText}>Privacy</Text>
+          </Pressable>
+          <Text style={{ color: '#8E8E93' }}>&bull;</Text>
+          <Pressable onPress={() => Linking.openURL('https://proxyproof.aayushsrivastava.com/terms')}>
+            <Text style={styles.footerLinkText}>Terms</Text>
+          </Pressable>
+          <Text style={{ color: '#8E8E93' }}>&bull;</Text>
+          <Pressable onPress={() => Linking.openURL('https://proxyproof.aayushsrivastava.com/contact')}>
+            <Text style={styles.footerLinkText}>Contact</Text>
+          </Pressable>
+          <Text style={{ color: '#8E8E93' }}>&bull;</Text>
+          <Pressable onPress={() => Linking.openURL('https://proxyproof.aayushsrivastava.com/download')}>
+            <Text style={styles.footerLinkText}>Download</Text>
           </Pressable>
         </View>
         <Text style={styles.copyrightText}>
-          Copyright © 2026 ProxyProof. Created by Aayush Srivastava.
+          &copy; {new Date().getFullYear()} ProxyProof &bull; Cryptographic Attendance Verification
         </Text>
       </View>
     </ScrollView>
   );
 }
 
-const createStyles = (isDark: boolean) => {
-  const palette = isDark
-    ? { background: '#0B111A', surface: '#121A24', elevated: '#1A2433', text: '#F0F4F8', secondary: '#A9B6C7', muted: '#8291A5', border: 'rgba(255,255,255,0.09)', tint: 'rgba(240,244,248,0.08)', tintBorder: 'rgba(240,244,248,0.15)' }
-    : { background: '#F2F2F7', surface: '#FFFFFF', elevated: '#FFFFFF', text: '#0B284C', secondary: '#636366', muted: '#8E8E93', border: 'rgba(0,0,0,0.06)', tint: 'rgba(11,40,76,0.06)', tintBorder: 'rgba(11,40,76,0.12)' };
-
-  return StyleSheet.create({
+const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: palette.background,
+    backgroundColor: '#F2F2F7',
   },
   content: {
     paddingBottom: 48,
@@ -269,9 +267,9 @@ const createStyles = (isDark: boolean) => {
     paddingHorizontal: 20,
     paddingTop: Platform.OS === 'ios' ? 14 : 18,
     paddingBottom: 14,
-    backgroundColor: palette.surface,
+    backgroundColor: '#FFFFFF',
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: palette.border,
+    borderBottomColor: 'rgba(0, 0, 0, 0.08)',
   },
   brandRow: {
     flexDirection: 'row',
@@ -281,26 +279,18 @@ const createStyles = (isDark: boolean) => {
   brandTitle: {
     fontSize: 17,
     fontWeight: '800',
-    color: palette.text,
+    color: '#0B284C',
     letterSpacing: -0.4,
   },
   brandTagline: {
     fontSize: 10,
     fontWeight: '600',
-    color: palette.muted,
+    color: '#8E8E93',
   },
   navActions: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-  },
-  themeToggle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: palette.tint,
   },
   navBtnSecondary: {
     flexDirection: 'row',
@@ -309,12 +299,12 @@ const createStyles = (isDark: boolean) => {
     paddingHorizontal: 12,
     paddingVertical: 7,
     borderRadius: 999,
-    backgroundColor: palette.tint,
+    backgroundColor: 'rgba(11, 40, 76, 0.06)',
   },
   navBtnSecondaryText: {
     fontSize: 12,
     fontWeight: '700',
-    color: palette.text,
+    color: '#0B284C',
   },
   navBtnPrimary: {
     paddingHorizontal: 14,
@@ -332,9 +322,9 @@ const createStyles = (isDark: boolean) => {
     paddingTop: 36,
     paddingBottom: 32,
     alignItems: 'center',
-    backgroundColor: palette.surface,
+    backgroundColor: '#FFFFFF',
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: palette.border,
+    borderBottomColor: 'rgba(0, 0, 0, 0.08)',
   },
   badgePill: {
     flexDirection: 'row',
@@ -357,7 +347,7 @@ const createStyles = (isDark: boolean) => {
   heroTitle: {
     fontSize: 30,
     fontWeight: '900',
-    color: palette.text,
+    color: '#0B284C',
     textAlign: 'center',
     letterSpacing: -0.8,
     lineHeight: 36,
@@ -365,7 +355,7 @@ const createStyles = (isDark: boolean) => {
   },
   heroSubtitle: {
     fontSize: 14.5,
-    color: palette.secondary,
+    color: '#636366',
     textAlign: 'center',
     lineHeight: 22,
     maxWidth: 420,
@@ -375,7 +365,7 @@ const createStyles = (isDark: boolean) => {
     width: '100%',
     maxWidth: 380,
     gap: 12,
-    marginBottom: 20,
+    marginBottom: 12,
   },
   heroPrimaryBtn: {
     flexDirection: 'row',
@@ -401,16 +391,32 @@ const createStyles = (isDark: boolean) => {
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: palette.tint,
+    backgroundColor: 'rgba(11, 40, 76, 0.06)',
     paddingVertical: 14,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: palette.tintBorder,
+    borderColor: 'rgba(11, 40, 76, 0.12)',
   },
   heroSecondaryBtnText: {
     fontSize: 15,
     fontWeight: '700',
-    color: palette.text,
+    color: '#0B284C',
+  },
+  heroDownloadBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: 'rgba(0, 157, 150, 0.08)',
+    paddingVertical: 12,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 157, 150, 0.20)',
+  },
+  heroDownloadBtnText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#009D96',
   },
   navStatusDot: {
     marginLeft: 2,
@@ -429,7 +435,7 @@ const createStyles = (isDark: boolean) => {
   sectionHeader: {
     fontSize: 22,
     fontWeight: '800',
-    color: palette.text,
+    color: '#0B284C',
     letterSpacing: -0.4,
     marginBottom: 18,
   },
@@ -437,11 +443,11 @@ const createStyles = (isDark: boolean) => {
     gap: 14,
   },
   featureCard: {
-    backgroundColor: palette.elevated,
+    backgroundColor: '#FFFFFF',
     borderRadius: 18,
     padding: 20,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: palette.border,
+    borderColor: 'rgba(0, 0, 0, 0.08)',
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.04,
@@ -459,21 +465,21 @@ const createStyles = (isDark: boolean) => {
   featureTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: palette.text,
+    color: '#0B284C',
     marginBottom: 6,
   },
   featureDesc: {
     fontSize: 13,
-    color: palette.secondary,
+    color: '#636366',
     lineHeight: 19,
   },
   stepsList: {
-    backgroundColor: palette.elevated,
+    backgroundColor: '#FFFFFF',
     borderRadius: 20,
     padding: 20,
     gap: 20,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: palette.border,
+    borderColor: 'rgba(0, 0, 0, 0.08)',
   },
   stepItem: {
     flexDirection: 'row',
@@ -498,12 +504,12 @@ const createStyles = (isDark: boolean) => {
   stepTitle: {
     fontSize: 15,
     fontWeight: '700',
-    color: palette.text,
+    color: '#0B284C',
     marginBottom: 4,
   },
   stepSub: {
     fontSize: 12.5,
-    color: palette.secondary,
+    color: '#636366',
     lineHeight: 18,
   },
   institutionCalloutCard: {
@@ -567,11 +573,10 @@ const createStyles = (isDark: boolean) => {
   },
   copyrightText: {
     fontSize: 11,
-    color: palette.muted,
+    color: '#8E8E93',
   },
   btnPressed: {
     opacity: 0.85,
     transform: [{ scale: 0.98 }],
   },
-  });
-};
+});

@@ -6,12 +6,10 @@ from backend.app.db.session import get_db
 from backend.app.core.dependencies import get_current_admin
 from backend.app.models.user import User
 from backend.app.models.device import DeviceChangeRequest
-from backend.app.models.audit import AuditLog
 from backend.app.schemas.device import (
     DeviceChangeRequestResponse,
     DeviceApprovalAction,
 )
-from backend.app.schemas.audit import AuditLogResponse
 from backend.app.services.device_service import approve_device_change, reject_device_change
 
 router = APIRouter()
@@ -59,21 +57,4 @@ def reject_request(
         request_id=request_id,
         admin_id=current_admin.id,
         reason=payload.reason if payload else None,
-    )
-
-
-@router.get("/audit-logs", response_model=List[AuditLogResponse])
-def list_audit_logs(
-    limit: int = Query(50, le=200),
-    offset: int = Query(0, ge=0),
-    current_admin: User = Depends(get_current_admin),
-    db: Session = Depends(get_db),
-):
-    """Returns paginated immutable audit events for security and administration review."""
-    return (
-        db.query(AuditLog)
-        .order_by(AuditLog.timestamp.desc())
-        .offset(offset)
-        .limit(limit)
-        .all()
     )

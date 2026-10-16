@@ -10,14 +10,14 @@
     "scheme": "proxyproof",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "bundleIdentifier": "com.vinnovateit.proxyproof",
+      "bundleIdentifier": "com.aayushsrivastava.proxyproof",
       "infoPlist": {
         "NSBluetoothAlwaysUsageDescription": "ProxyProof requires Bluetooth to broadcast and detect proximity beacons for automatic attendance validation.",
         "NSBluetoothPeripheralUsageDescription": "ProxyProof uses Bluetooth Low Energy to verify physical presence in class."
       }
     },
     "android": {
-      "package": "com.vinnovateit.proxyproof",
+      "package": "com.aayushsrivastava.proxyproof",
       "adaptiveIcon": {
         "backgroundColor": "#0B284C",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -42,6 +42,14 @@
     },
     "plugins": [
       "expo-router",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "ndkVersion": "30.0.16248370"
+          }
+        }
+      ],
       [
         "expo-splash-screen",
         {

@@ -16,7 +16,6 @@ from backend.app.models import (
     Class,
     ClassMembership,
     Device,
-    AuditLog,
 )
 
 DEFAULT_DEV_PASSWORD = "Password123!"
@@ -44,16 +43,6 @@ def seed_database(db: Session, admin_only: bool = False):
             db.add(admin)
             db.flush()
             print(f"✓ Created Admin user: {email}")
-
-            audit = AuditLog(
-                id=uuid.uuid4(),
-                actor_id=admin.id,
-                action="BOOTSTRAP_ADMIN",
-                target_type="user",
-                target_id=str(admin.id),
-                reason="Initial system bootstrap",
-            )
-            db.add(audit)
         else:
             print(f"• Admin user already exists: {email}")
 

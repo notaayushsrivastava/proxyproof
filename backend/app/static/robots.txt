@@ -9,4 +9,4 @@ Disallow: /api/
 Disallow: /docs
 Disallow: /redoc
 
-Sitemap: /sitemap.xml
+Sitemap: https://proxyproof.aayushsrivastava.com/sitemap.xml

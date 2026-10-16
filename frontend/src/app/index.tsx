@@ -17,7 +17,6 @@ import {
   BarChart3,
   LayoutDashboard,
   ShieldCheck,
-  FileText,
 } from 'lucide-react-native';
 import { useAuth } from '../store/auth';
 import { Header } from '../components/Header';
@@ -32,12 +31,12 @@ import { OrganizerLiveSessionView } from '../components/OrganizerLiveSessionView
 import { OrganizerClassesView } from '../components/OrganizerClassesView';
 import { OrganizerHistoryView } from '../components/OrganizerHistoryView';
 import { AdminOverviewView } from '../components/AdminOverviewView';
+import { AdminFacultyView } from '../components/AdminFacultyView';
 import { AdminDeviceQueueView } from '../components/AdminDeviceQueueView';
-import { AdminAuditLogsView } from '../components/AdminAuditLogsView';
 
 type StudentTab = 'scanner' | 'classes' | 'device';
 type OrganizerTab = 'live' | 'classes' | 'history';
-type AdminTab = 'overview' | 'queue' | 'audit';
+type AdminTab = 'overview' | 'faculty' | 'queue';
 
 export default function AppEntry() {
   const { user, isAuthenticated, isLoading } = useAuth();
@@ -107,10 +106,10 @@ export default function AppEntry() {
       switch (adminTab) {
         case 'overview':
           return { title: 'Admin Overview', subtitle: 'System Metrics & Rules' };
+        case 'faculty':
+          return { title: 'Faculty & Staff', subtitle: 'Instructor Accounts & Department Roster' };
         case 'queue':
           return { title: 'Device Queue', subtitle: 'Student Phone Change Requests' };
-        case 'audit':
-          return { title: 'Security Audit', subtitle: 'Immutable System Audit Trail' };
       }
     }
   };
@@ -147,8 +146,8 @@ export default function AppEntry() {
         {user.role === 'admin' && (
           <>
             {adminTab === 'overview' && <AdminOverviewView />}
+            {adminTab === 'faculty' && <AdminFacultyView />}
             {adminTab === 'queue' && <AdminDeviceQueueView />}
-            {adminTab === 'audit' && <AdminAuditLogsView />}
           </>
         )}
       </View>
@@ -391,6 +390,38 @@ export default function AppEntry() {
 
             <Pressable
               accessibilityRole="tab"
+              accessibilityState={{ selected: adminTab === 'faculty' }}
+              style={({ pressed }) => [
+                styles.bottomTabButton,
+                pressed && styles.tabButtonPressed,
+              ]}
+              onPress={() => setAdminTab('faculty')}
+            >
+              <View
+                style={[
+                  styles.tabIconBadge,
+                  adminTab === 'faculty' && styles.tabIconBadgeActive,
+                ]}
+              >
+                <Users
+                  size={20}
+                  color={adminTab === 'faculty' ? '#0B284C' : '#8E8E93'}
+                  strokeWidth={adminTab === 'faculty' ? 2.4 : 2}
+                />
+              </View>
+              <Text
+                style={[
+                  styles.bottomTabText,
+                  adminTab === 'faculty' && styles.bottomTabTextActive,
+                ]}
+                numberOfLines={1}
+              >
+                Faculty
+              </Text>
+            </Pressable>
+
+            <Pressable
+              accessibilityRole="tab"
               accessibilityState={{ selected: adminTab === 'queue' }}
               style={({ pressed }) => [
                 styles.bottomTabButton,
@@ -418,38 +449,6 @@ export default function AppEntry() {
                 numberOfLines={1}
               >
                 Queue
-              </Text>
-            </Pressable>
-
-            <Pressable
-              accessibilityRole="tab"
-              accessibilityState={{ selected: adminTab === 'audit' }}
-              style={({ pressed }) => [
-                styles.bottomTabButton,
-                pressed && styles.tabButtonPressed,
-              ]}
-              onPress={() => setAdminTab('audit')}
-            >
-              <View
-                style={[
-                  styles.tabIconBadge,
-                  adminTab === 'audit' && styles.tabIconBadgeActive,
-                ]}
-              >
-                <FileText
-                  size={20}
-                  color={adminTab === 'audit' ? '#0B284C' : '#8E8E93'}
-                  strokeWidth={adminTab === 'audit' ? 2.4 : 2}
-                />
-              </View>
-              <Text
-                style={[
-                  styles.bottomTabText,
-                  adminTab === 'audit' && styles.bottomTabTextActive,
-                ]}
-                numberOfLines={1}
-              >
-                Audit
               </Text>
             </Pressable>
           </>
@@ -509,14 +508,15 @@ const styles = StyleSheet.create({
     gap: 3,
   },
   tabIconBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 3,
-    borderRadius: 16,
+    minWidth: 54,
+    height: 30,
+    paddingHorizontal: 16,
+    borderRadius: 9999,
     alignItems: 'center',
     justifyContent: 'center',
   },
   tabIconBadgeActive: {
-    backgroundColor: 'rgba(11, 40, 76, 0.10)',
+    backgroundColor: 'rgba(11, 40, 76, 0.12)',
   },
   tabButtonPressed: {
     opacity: 0.7,
