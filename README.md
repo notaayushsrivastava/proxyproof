@@ -1,6 +1,57 @@
 # ProxyProof — Cryptographically Verified BLE Classroom Attendance
 
+<p align="center">
+  <a href="https://github.com/notaayushsrivastava/proxyproof/releases/download/v1.0.0/proxyproof-v1.0.0.apk">
+    <img src="https://img.shields.io/badge/Download%20APK-proxyproof--v1.0.0.apk-009D96?style=for-the-badge&logo=android&logoColor=white" alt="Download APK" />
+  </a>
+  <a href="https://github.com/notaayushsrivastava/proxyproof/releases/latest">
+    <img src="https://img.shields.io/badge/Platform-Android-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Android Platform" />
+  </a>
+  <a href="https://github.com/notaayushsrivastava/proxyproof/releases/tag/v1.0.0">
+    <img src="https://img.shields.io/badge/Release-v1.0.0-0B284C?style=for-the-badge&logo=github&logoColor=white" alt="Latest Release" />
+  </a>
+  <a href="https://github.com/notaayushsrivastava/proxyproof/releases/latest">
+    <img src="https://img.shields.io/badge/Package-com.aayushsrivastava.proxyproof-007AFF?style=for-the-badge&logo=android&logoColor=white" alt="Package Identifier" />
+  </a>
+  <a href="https://github.com/notaayushsrivastava/proxyproof/releases/download/v1.0.0/proxyproof-v1.0.0.apk">
+    <img src="https://img.shields.io/badge/Size-106%20MB-5A697E?style=for-the-badge&logo=google-drive&logoColor=white" alt="APK Size" />
+  </a>
+</p>
+
 ProxyProof is an attendance verification system designed for university lecture halls and classrooms. It replaces fraud-prone QR codes and manual roll-calls with Bluetooth Low Energy (BLE) proximity detection, short-lived rotating HMAC-SHA-256 tokens, and hardware-bound student device verification.
+
+---
+
+## 📥 Android App Download (Latest Release: v1.0.0)
+
+[![Direct APK Download](https://img.shields.io/badge/Download%20Direct%20APK-proxyproof--v1.0.0.apk-009D96?style=for-the-badge&logo=android&logoColor=white)](https://github.com/notaayushsrivastava/proxyproof/releases/download/v1.0.0/proxyproof-v1.0.0.apk)
+[![GitHub Releases](https://img.shields.io/badge/GitHub%20Releases-v1.0.0-0B284C?style=for-the-badge&logo=github&logoColor=white)](https://github.com/notaayushsrivastava/proxyproof/releases/latest)
+
+You can download and install the pre-built, production Android package directly:
+
+| Parameter | Value |
+| :--- | :--- |
+| **Latest Version** | **v1.0.0** |
+| **Direct APK Link** | [**`proxyproof-v1.0.0.apk`**](https://github.com/notaayushsrivastava/proxyproof/releases/download/v1.0.0/proxyproof-v1.0.0.apk) |
+| **Package Name** | `com.aayushsrivastava.proxyproof` |
+| **Target OS** | Android 8.0+ (API 26+) with Bluetooth Low Energy (BLE 5.0) |
+| **File Size** | 106.2 MB (111,369,113 bytes) |
+| **SHA-256 Checksum** | `fff85d390d4d22b2d83c4d2826b1872d4ce10fdfb6516988b36dba80b8f601c8` |
+| **All Releases** | [GitHub Releases Archive](https://github.com/notaayushsrivastava/proxyproof/releases) |
+
+### Installation Instructions
+
+#### Option A: Install via ADB (Computer to Android Device)
+Connect your device with USB Debugging enabled, then run:
+```powershell
+adb install -r proxyproof-v1.0.0.apk
+```
+
+#### Option B: Direct Installation on Android Phone
+1. Open [Download proxyproof-v1.0.0.apk](https://github.com/notaayushsrivastava/proxyproof/releases/download/v1.0.0/proxyproof-v1.0.0.apk) in your Android mobile browser.
+2. Tap the downloaded file in the **Downloads** notification or file manager.
+3. If prompted by Android security, allow **"Install unknown apps"** for your browser.
+4. Tap **Install** and grant **Nearby Devices (Bluetooth)** and Location permissions on launch so the app can detect attendance beacons.
 
 ---
 
@@ -13,7 +64,7 @@ ProxyProof is an attendance verification system designed for university lecture 
 - **Time Slot Drift Window:** The server validates proofs within a strict clock-drift tolerance window ($\pm 1$ slot, corresponding to 5 seconds). Tokens older than 10 seconds or from the future are rejected.
 - **Client-Reported RSSI Proximity Heuristic:** Student devices must collect $\ge 3$ RSSI samples over a 3–5 second window. An outlier rejection filter (-100 dBm to -20 dBm) computes a robust median. Marks require median signal $\ge -75$ dBm.
 - **One Active Device Constraint:** Enforced at the PostgreSQL level via a partial unique index (`uq_one_active_device_per_student`). Switching phones requires administrative approval, which atomically revokes the old device key and activates the new key.
-- **Idempotent Marking & Auditability:** Attendance submission is idempotent on `(session_id, student_id)`. All manual adjustments, deletions, and device approvals require recorded reasons and are permanently appended to the institutional audit log.
+- **Idempotent Marking & Governance:** Attendance submission is idempotent on `(session_id, student_id)`. Manual adjustments and device approvals require recorded reasons.
 - **Spreadsheet Security:** CSV exports implement RFC 4180 escaping with formula injection sanitization (values starting with `=`, `+`, `-`, or `@` are safely apostrophe-prefixed).
 
 ---
@@ -114,7 +165,7 @@ The database seed provides ready-to-test campus accounts:
 
 ## 6. Running Automated Tests
 
-### Backend Test Suite (15 Integration & Unit Tests)
+### Backend Test Suite (17 Integration & Unit Tests)
 ```powershell
 cd c:\Users\Aayush\Desktop\python_projects_shared\vinnovateit\app-dev
 $env:PYTHONPATH="."
@@ -124,7 +175,10 @@ Verifies:
 - PostgreSQL database connectivity & health checks
 - Argon2id password hashing & JWT token issue/decode
 - PostgreSQL partial unique index (`uq_one_active_device_per_student`)
-- Attendance uniqueness constraint (`uq_attendance_session_student`)
+- Attendance uniqueness constraint (`uq_session_student_attendance`)
+- Multi-tenant institution registration & metrics overview
+- Faculty account provisioning & bulk CSV upload
+- Student roster enrollment & bulk CSV registration
 - Rotating HMAC-SHA-256 drift validation
 - Role guards (`student`, `organizer`, `admin`)
 - Device registration & atomic change request approval
@@ -160,6 +214,14 @@ Both commands pass with **0 errors and 0 warnings**.
 ## 7. API Endpoints Overview
 
 All routes are versioned under `/api/v1`:
+
+### Institutions & Faculty Management
+- `POST /api/v1/institutions/register` — Self-serve institution registration with initial root admin
+- `GET /api/v1/institutions/me/overview` — Administrative overview metrics & statistics
+- `GET /api/v1/institutions/me/faculty` — Departmental faculty roster listing
+- `POST /api/v1/institutions/me/faculty` — Manual faculty account creation
+- `POST /api/v1/institutions/me/faculty/bulk-csv` — Mass-import faculty members via CSV upload
+- `POST /api/v1/classes/{id}/students/bulk-csv` — Mass-import students and auto-enroll into class roster via CSV
 
 ### Authentication & Profile
 - `POST /api/v1/auth/login` — Authenticate and receive JWT access token
@@ -198,7 +260,6 @@ All routes are versioned under `/api/v1`:
 - `GET /api/v1/admin/device-change-requests` — Pending device replacement queue
 - `POST /api/v1/admin/device-change-requests/{id}/approve` — Atomically activate new device & revoke old
 - `POST /api/v1/admin/device-change-requests/{id}/reject` — Reject replacement request
-- `GET /api/v1/admin/audit-logs` — Immutable audit log inspection
 
 ### Real-Time WebSocket
 - `WS /api/v1/ws/sessions/{id}?token={jwt}` — Live event stream (`attendance.marked`, `attendance.corrected`, `session.closed`)
@@ -250,44 +311,46 @@ app-dev/
 │   │   │   └── seed.py             # Database seed script for test accounts, classes, & devices
 │   │   ├── models/
 │   │   │   ├── enums.py            # Typed enumerations for roles, account status, & session states
+│   │   │   ├── institution.py      # Multi-tenant university institution configuration & admin binding
 │   │   │   ├── user.py             # User account & student academic profile entities
 │   │   │   ├── device.py           # Registered hardware model with one-active-device constraint
 │   │   │   ├── class_model.py      # Academic course & student membership roster models
 │   │   │   ├── session.py          # Classroom roll-call session model with HMAC secret
-│   │   │   ├── attendance.py       # Attendance record model with uniqueness constraints & RSSI
-│   │   │   └── audit.py            # Append-only institutional audit log model
+│   │   │   └── attendance.py       # Attendance record model with uniqueness constraints & RSSI
 │   │   ├── schemas/
 │   │   │   ├── auth.py             # Pydantic schemas for login, tokens, & user profiles
+│   │   │   ├── institution.py      # Schemas for institution registration, faculty management, & stats
 │   │   │   ├── device.py           # Schemas for device registration & change requests
 │   │   │   ├── class_schema.py     # Schemas for course listings, rosters, & memberships
 │   │   │   ├── session.py          # Schemas for session creation, queries, & status transitions
-│   │   │   ├── attendance.py       # Schemas for BLE proof submissions & manual mark updates
-│   │   │   └── audit.py            # Schemas for administrative audit log queries
+│   │   │   └── attendance.py       # Schemas for BLE proof submissions & manual mark updates
 │   │   ├── services/
 │   │   │   ├── attendance_validator.py # Authoritative 10-step attendance verification engine
 │   │   │   ├── device_service.py   # Business logic for device registration & swap approvals
 │   │   │   ├── class_service.py    # Class roster management & student enrollment operations
 │   │   │   ├── export_service.py   # Formula-injection-safe CSV export generator
-│   │   │   ├── websocket_manager.py # Real-time WebSocket connection hub for live dashboard events
-│   │   │   └── audit_service.py    # Centralized helper recording immutable security audit events
+│   │   │   └── websocket_manager.py # Real-time WebSocket connection hub for live dashboard events
 │   │   └── api/v1/
 │   │       ├── api.py              # Root router mounting all domain endpoint collections
 │   │       └── endpoints/
 │   │           ├── auth.py         # Authentication, login, & user profile routes
+│   │           ├── institutions.py # University registration, faculty roster, & bulk CSV onboarding
 │   │           ├── devices.py      # Hardware registration & swap request endpoints
 │   │           ├── classes.py      # Course roster & student enrollment management routes
 │   │           ├── sessions.py     # Roll-call session lifecycle & CSV export endpoints
 │   │           ├── attendance.py   # BLE proof processing & manual adjustment endpoints
 │   │           ├── students.py     # Student attendance rate & session history routes
-│   │           ├── admin.py        # Privileged device change approval & audit log inspection
+│   │           ├── admin.py        # Privileged device change approval queue inspection
 │   │           ├── health.py       # Container readiness & database connectivity check
 │   │           └── websocket.py    # WebSocket endpoint streaming live attendance updates
 │   └── tests/
 │       ├── conftest.py             # Pytest harness providing test sessions & HTTP clients
 │       ├── test_api.py             # Baseline health and routing integration test suite
+│       ├── test_institutions.py    # University onboarding, faculty listing, & overview tests
 │       ├── test_milestone2.py      # Database constraints, partial index, & connectivity tests
 │       ├── test_milestone3.py      # Authentication, RBAC role guard, & device binding tests
-│       └── test_milestone4.py      # Validation engine, token drift, & CSV sanitization tests
+│       ├── test_milestone4.py      # Validation engine, token drift, & CSV sanitization tests
+│       └── test_workflow.py        # Complete end-to-end institutional workflow lifecycle tests
 └── frontend/                       # Expo React Native cross-platform mobile application
     ├── app.json                    # Expo manifest configuring Bluetooth permissions & bundle IDs
     ├── package.json                # Project dependencies, scripts, & test runners
@@ -313,7 +376,9 @@ app-dev/
     │   │   └── api.ts              # Shared TypeScript interfaces mirroring backend contracts
     │   └── components/
     │       ├── Header.tsx          # Common app header showing user name, role badge, & logout
+    │       ├── LandingView.tsx     # High-contrast light institutional landing page
     │       ├── LoginView.tsx       # Credential login view with test account autofill buttons
+    │       ├── RegisterInstitutionView.tsx # Self-serve university & root admin registration form
     │       ├── StudentHomeView.tsx # Student dashboard with automated beacon scanner status
     │       ├── StudentClassesView.tsx # Enrolled course list with server-computed attendance rates
     │       ├── StudentDeviceView.tsx # Registered phone hardware status & device swap flow
@@ -321,8 +386,8 @@ app-dev/
     │       ├── OrganizerLiveSessionView.tsx # Live roll-call view with active beacon, timer, & marks
     │       ├── OrganizerHistoryView.tsx # Past session history viewer with CSV download actions
     │       ├── AdminOverviewView.tsx # Administrator statistics hub & quick action overview
-    │       ├── AdminDeviceQueueView.tsx # Pending device replacement approval & rejection queue
-    │       └── AdminAuditLogsView.tsx # Immutable institutional audit log inspection table
+    │       ├── AdminFacultyView.tsx # Faculty management with individual creation & bulk CSV import
+    │       └── AdminDeviceQueueView.tsx # Pending device replacement approval & rejection queue
     └── tests/
         ├── ble_proof.test.ts       # Protocol tests for token derivation, drift, & payload encoding
         ├── rssi.test.ts            # Outlier filter and median proximity threshold unit tests
@@ -349,12 +414,12 @@ app-dev/
 
 #### Backend Relational Models
 - [`backend/app/models/enums.py`](file:///c:/Users/Aayush/Desktop/python_projects_shared/vinnovateit/app-dev/backend/app/models/enums.py): Declares enumerated string types for user roles, account lifecycle states, session status, and mobile device operating systems.
-- [`backend/app/models/user.py`](file:///c:/Users/Aayush/Desktop/python_projects_shared/vinnovateit/app-dev/backend/app/models/user.py): Defines PostgreSQL user credentials, role assignments, and student institutional registration profiles.
+- [`backend/app/models/institution.py`](file:///c:/Users/Aayush/Desktop/python_projects_shared/vinnovateit/app-dev/backend/app/models/institution.py): Defines multi-tenant university profile, attendance window policies, and root administrative ownership.
+- [`backend/app/models/user.py`](file:///c:/Users/Aayush/Desktop/python_projects_shared/vinnovateit/app-dev/backend/app/models/user.py): Defines PostgreSQL user credentials, role assignments, department affiliations, and student institutional registration profiles.
 - [`backend/app/models/device.py`](file:///c:/Users/Aayush/Desktop/python_projects_shared/vinnovateit/app-dev/backend/app/models/device.py): Stores registered mobile device keys with a partial unique index guaranteeing only one active device per student.
 - [`backend/app/models/class_model.py`](file:///c:/Users/Aayush/Desktop/python_projects_shared/vinnovateit/app-dev/backend/app/models/class_model.py): Represents courses and class membership rosters linking students to assigned instructors.
 - [`backend/app/models/session.py`](file:///c:/Users/Aayush/Desktop/python_projects_shared/vinnovateit/app-dev/backend/app/models/session.py): Models live roll-call sessions with active time limits, expiration timestamps, and cryptographic beacon secrets.
 - [`backend/app/models/attendance.py`](file:///c:/Users/Aayush/Desktop/python_projects_shared/vinnovateit/app-dev/backend/app/models/attendance.py): Stores verified attendance records with unique session-student constraints, client RSSI telemetry, and verification methods.
-- [`backend/app/models/audit.py`](file:///c:/Users/Aayush/Desktop/python_projects_shared/vinnovateit/app-dev/backend/app/models/audit.py): Provides an immutable audit trail capturing administrative approvals, manual roll-call alterations, and security events.
 
 #### Backend Business Services & Validation
 - [`backend/app/services/attendance_validator.py`](file:///c:/Users/Aayush/Desktop/python_projects_shared/vinnovateit/app-dev/backend/app/services/attendance_validator.py): Executes the authoritative 10-step validation engine verifying token freshness, clock drift, device status, and RSSI proximity.
@@ -362,24 +427,24 @@ app-dev/
 - [`backend/app/services/class_service.py`](file:///c:/Users/Aayush/Desktop/python_projects_shared/vinnovateit/app-dev/backend/app/services/class_service.py): Handles course queries, instructor ownership verification, and student roster enrollments.
 - [`backend/app/services/export_service.py`](file:///c:/Users/Aayush/Desktop/python_projects_shared/vinnovateit/app-dev/backend/app/services/export_service.py): Generates RFC 4180 CSV exports with formula injection sanitization escaping sensitive characters.
 - [`backend/app/services/websocket_manager.py`](file:///c:/Users/Aayush/Desktop/python_projects_shared/vinnovateit/app-dev/backend/app/services/websocket_manager.py): Dispatches real-time broadcast events over WebSockets to live organizer dashboards.
-- [`backend/app/services/audit_service.py`](file:///c:/Users/Aayush/Desktop/python_projects_shared/vinnovateit/app-dev/backend/app/services/audit_service.py): Records structured security log entries with actor IDs, action types, target entities, and mandatory justification reasons.
 
 #### Backend API Endpoints (`/api/v1`)
 - [`backend/app/api/v1/api.py`](file:///c:/Users/Aayush/Desktop/python_projects_shared/vinnovateit/app-dev/backend/app/api/v1/api.py): Combines all sub-routers into the unified API v1 schema.
+- [`backend/app/api/v1/endpoints/institutions.py`](file:///c:/Users/Aayush/Desktop/python_projects_shared/vinnovateit/app-dev/backend/app/api/v1/endpoints/institutions.py): Handles university registration, faculty roster queries, and individual/mass CSV onboarding.
 - [`backend/app/api/v1/endpoints/auth.py`](file:///c:/Users/Aayush/Desktop/python_projects_shared/vinnovateit/app-dev/backend/app/api/v1/endpoints/auth.py): Handles user authentication, token generation, profile retrieval, and session termination.
 - [`backend/app/api/v1/endpoints/devices.py`](file:///c:/Users/Aayush/Desktop/python_projects_shared/vinnovateit/app-dev/backend/app/api/v1/endpoints/devices.py): Manages student hardware binding, active device inspection, and phone replacement submission.
-- [`backend/app/api/v1/endpoints/classes.py`](file:///c:/Users/Aayush/Desktop/python_projects_shared/vinnovateit/app-dev/backend/app/api/v1/endpoints/classes.py): Exposes course metadata, student roster listings, and member management.
+- [`backend/app/api/v1/endpoints/classes.py`](file:///c:/Users/Aayush/Desktop/python_projects_shared/vinnovateit/app-dev/backend/app/api/v1/endpoints/classes.py): Exposes course metadata, student roster listings, member management, and mass CSV student enrollment.
 - [`backend/app/api/v1/endpoints/sessions.py`](file:///c:/Users/Aayush/Desktop/python_projects_shared/vinnovateit/app-dev/backend/app/api/v1/endpoints/sessions.py): Controls session initialization, live status inspection, early session closure, and CSV downloads.
 - [`backend/app/api/v1/endpoints/attendance.py`](file:///c:/Users/Aayush/Desktop/python_projects_shared/vinnovateit/app-dev/backend/app/api/v1/endpoints/attendance.py): Ingests BLE attendance proofs, returns live attendance lists, and processes manual marks or removals.
 - [`backend/app/api/v1/endpoints/students.py`](file:///c:/Users/Aayush/Desktop/python_projects_shared/vinnovateit/app-dev/backend/app/api/v1/endpoints/students.py): Computes overall student attendance percentages and session-by-session history records.
-- [`backend/app/api/v1/endpoints/admin.py`](file:///c:/Users/Aayush/Desktop/python_projects_shared/vinnovateit/app-dev/backend/app/api/v1/endpoints/admin.py): Provides administrative endpoints to review device replacement queues and query system audit logs.
+- [`backend/app/api/v1/endpoints/admin.py`](file:///c:/Users/Aayush/Desktop/python_projects_shared/vinnovateit/app-dev/backend/app/api/v1/endpoints/admin.py): Provides administrative endpoints to review and resolve device replacement queues.
 - [`backend/app/api/v1/endpoints/health.py`](file:///c:/Users/Aayush/Desktop/python_projects_shared/vinnovateit/app-dev/backend/app/api/v1/endpoints/health.py): Validates database connectivity and service availability without leaking operational secrets.
 - [`backend/app/api/v1/endpoints/websocket.py`](file:///c:/Users/Aayush/Desktop/python_projects_shared/vinnovateit/app-dev/backend/app/api/v1/endpoints/websocket.py): Establishes authenticated WebSocket streams for real-time roll-call attendance updates.
 
 #### Frontend Application & BLE Architecture
-- [`frontend/app.json`](file:///c:/Users/Aayush/Desktop/python_projects_shared/vinnovateit/app-dev/frontend/app.json): Declares Expo build metadata, native Bluetooth usage permissions for iOS, and Android BLE permission arrays.
+- [`frontend/app.json`](file:///c:/Users/Aayush/Desktop/python_projects_shared/vinnovateit/app-dev/frontend/app.json): Declares Expo build metadata, native Bluetooth usage permissions for iOS, and Android BLE permission arrays (`com.aayushsrivastava.proxyproof`).
 - [`frontend/src/app/_layout.tsx`](file:///c:/Users/Aayush/Desktop/python_projects_shared/vinnovateit/app-dev/frontend/src/app/_layout.tsx): Top-level component establishing global authentication context, safe area boundaries, and navigation status bar styling.
-- [`frontend/src/app/index.tsx`](file:///c:/Users/Aayush/Desktop/python_projects_shared/vinnovateit/app-dev/frontend/src/app/index.tsx): Main application router dynamically rendering Student, Organizer, or Admin views according to authenticated role.
+- [`frontend/src/app/index.tsx`](file:///c:/Users/Aayush/Desktop/python_projects_shared/vinnovateit/app-dev/frontend/src/app/index.tsx): Main application router dynamically rendering Student, Organizer, or Admin views with capsule-elliptical selected tabs.
 - [`frontend/src/store/authContext.tsx`](file:///c:/Users/Aayush/Desktop/python_projects_shared/vinnovateit/app-dev/frontend/src/store/authContext.tsx): Manages authentication state, secure credential persistence with `expo-secure-store`, and active user profiles.
 - [`frontend/src/services/api.ts`](file:///c:/Users/Aayush/Desktop/python_projects_shared/vinnovateit/app-dev/frontend/src/services/api.ts): Centralized HTTP service executing typed requests against the backend with automatic bearer token injection.
 - [`frontend/src/services/websocket.ts`](file:///c:/Users/Aayush/Desktop/python_projects_shared/vinnovateit/app-dev/frontend/src/services/websocket.ts): WebSocket connection client handling real-time session event subscriptions with automatic reconnect logic.
@@ -389,14 +454,16 @@ app-dev/
 - [`frontend/src/ble/mock-adapter.ts`](file:///c:/Users/Aayush/Desktop/python_projects_shared/vinnovateit/app-dev/frontend/src/ble/mock-adapter.ts): In-memory beacon simulation harness allowing deterministic multi-device attendance testing in browser and development builds.
 - [`frontend/src/hooks/useAttendanceScanner.ts`](file:///c:/Users/Aayush/Desktop/python_projects_shared/vinnovateit/app-dev/frontend/src/hooks/useAttendanceScanner.ts): React hook orchestrating hands-free beacon detection, RSSI telemetry collection, and background attendance submission.
 - [`frontend/src/components/Header.tsx`](file:///c:/Users/Aayush/Desktop/python_projects_shared/vinnovateit/app-dev/frontend/src/components/Header.tsx): Reusable app bar showing institution branding, logged-in user profile, role badge, and sign-out button.
+- [`frontend/src/components/LandingView.tsx`](file:///c:/Users/Aayush/Desktop/python_projects_shared/vinnovateit/app-dev/frontend/src/components/LandingView.tsx): Institutional welcome screen featuring static high-contrast Apple light theme and direct authentication entrypoints.
 - [`frontend/src/components/LoginView.tsx`](file:///c:/Users/Aayush/Desktop/python_projects_shared/vinnovateit/app-dev/frontend/src/components/LoginView.tsx): Login screen featuring password authentication and fast-autofill test accounts for rapid evaluation.
+- [`frontend/src/components/RegisterInstitutionView.tsx`](file:///c:/Users/Aayush/Desktop/python_projects_shared/vinnovateit/app-dev/frontend/src/components/RegisterInstitutionView.tsx): Form interface allowing university administrators to establish a tenant institution with root credentials.
 - [`frontend/src/components/StudentHomeView.tsx`](file:///c:/Users/Aayush/Desktop/python_projects_shared/vinnovateit/app-dev/frontend/src/components/StudentHomeView.tsx): Student screen showing device verification status, active scanner animations, and active session indicators.
 - [`frontend/src/components/StudentClassesView.tsx`](file:///c:/Users/Aayush/Desktop/python_projects_shared/vinnovateit/app-dev/frontend/src/components/StudentClassesView.tsx): Displays enrolled classes, session attendance history, and server-verified attendance rates.
 - [`frontend/src/components/StudentDeviceView.tsx`](file:///c:/Users/Aayush/Desktop/python_projects_shared/vinnovateit/app-dev/frontend/src/components/StudentDeviceView.tsx): Displays current hardware device details and enables submitting replacement requests with justification notes.
-- [`frontend/src/components/OrganizerClassesView.tsx`](file:///c:/Users/Aayush/Desktop/python_projects_shared/vinnovateit/app-dev/frontend/src/components/OrganizerClassesView.tsx): Course management dashboard for instructors to view enrolled rosters and launch time-limited attendance sessions.
+- [`frontend/src/components/OrganizerClassesView.tsx`](file:///c:/Users/Aayush/Desktop/python_projects_shared/vinnovateit/app-dev/frontend/src/components/OrganizerClassesView.tsx): Course management dashboard for instructors to view enrolled rosters, mass-upload students via CSV, and launch sessions.
 - [`frontend/src/components/OrganizerLiveSessionView.tsx`](file:///c:/Users/Aayush/Desktop/python_projects_shared/vinnovateit/app-dev/frontend/src/components/OrganizerLiveSessionView.tsx): Live roll-call view with active BLE beacon broadcast, real-time student counter, manual adjustment modal, and early session closure.
 - [`frontend/src/components/OrganizerHistoryView.tsx`](file:///c:/Users/Aayush/Desktop/python_projects_shared/vinnovateit/app-dev/frontend/src/components/OrganizerHistoryView.tsx): Historical session archive enabling instructors to review attendance metrics and export sanitized CSV spreadsheets.
-- [`frontend/src/components/AdminOverviewView.tsx`](file:///c:/Users/Aayush/Desktop/python_projects_shared/vinnovateit/app-dev/frontend/src/components/AdminOverviewView.tsx): Administrator landing dashboard with system metrics, pending device queue counters, and quick navigation shortcuts.
+- [`frontend/src/components/AdminOverviewView.tsx`](file:///c:/Users/Aayush/Desktop/python_projects_shared/vinnovateit/app-dev/frontend/src/components/AdminOverviewView.tsx): Administrator landing dashboard with institution metrics, faculty counters, and pending device queue indicators.
+- [`frontend/src/components/AdminFacultyView.tsx`](file:///c:/Users/Aayush/Desktop/python_projects_shared/vinnovateit/app-dev/frontend/src/components/AdminFacultyView.tsx): Faculty roster manager supporting manual instructor account creation and mass onboarding via CSV.
 - [`frontend/src/components/AdminDeviceQueueView.tsx`](file:///c:/Users/Aayush/Desktop/python_projects_shared/vinnovateit/app-dev/frontend/src/components/AdminDeviceQueueView.tsx): Administrative interface for reviewing, approving, or denying student device change requests.
-- [`frontend/src/components/AdminAuditLogsView.tsx`](file:///c:/Users/Aayush/Desktop/python_projects_shared/vinnovateit/app-dev/frontend/src/components/AdminAuditLogsView.tsx): Searchable compliance table displaying immutable audit records of administrative approvals and manual attendance edits.
 
