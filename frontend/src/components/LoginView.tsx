@@ -10,12 +10,20 @@ import {
   Platform,
   ScrollView,
 } from 'react-native';
-import { AlertCircle } from 'lucide-react-native';
+import { AlertCircle, ArrowLeft, Building2 } from 'lucide-react-native';
 import { useAuth } from '../store/auth';
 import { api, getDefaultBaseUrl } from '../services/api';
 import { Logo } from './ui/Logo';
 
-export function LoginView() {
+interface LoginViewProps {
+  onNavigateToRegister?: () => void;
+  onNavigateToLanding?: () => void;
+}
+
+export function LoginView({
+  onNavigateToRegister,
+  onNavigateToLanding,
+}: LoginViewProps) {
   const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -49,12 +57,6 @@ export function LoginView() {
     }
   };
 
-  const fillQuickAccount = (e: string, p: string) => {
-    setEmail(e);
-    setPassword(p);
-    setError(null);
-  };
-
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -62,15 +64,27 @@ export function LoginView() {
     >
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.card}>
+          {/* Back Navigation Button */}
+          {onNavigateToLanding && (
+            <Pressable
+              style={({ pressed }) => [styles.backBtn, pressed && styles.btnPressed]}
+              onPress={onNavigateToLanding}
+              accessibilityRole="button"
+            >
+              <ArrowLeft size={16} color="#0B284C" strokeWidth={2.4} />
+              <Text style={styles.backBtnText}>Back to Welcome</Text>
+            </Pressable>
+          )}
+
           <View style={styles.headerBox}>
             <View style={styles.logoWrapper}>
-              <Logo size={62} variant="full" />
+              <Logo size={58} variant="full" />
             </View>
             <View style={styles.badgeBox}>
-              <Text style={styles.badgeText}>VERIFIED ATTENDANCE SYSTEM</Text>
+              <Text style={styles.badgeText}>INSTITUTIONAL LOGIN</Text>
             </View>
             <Text style={styles.subtitle}>
-              Cryptographically verified check-in for students and faculty
+              Sign in with your campus student, faculty, or administrator credentials
             </Text>
           </View>
 
@@ -90,12 +104,12 @@ export function LoginView() {
           )}
 
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Institutional Email</Text>
+            <Text style={styles.label}>Campus Email</Text>
             <TextInput
               style={styles.input}
               value={email}
               onChangeText={setEmail}
-              placeholder="e.g. student1@proxyproof.local"
+              placeholder="e.g. yourname@university.edu"
               placeholderTextColor="#8E8E93"
               keyboardType="email-address"
               autoCapitalize="none"
@@ -135,52 +149,30 @@ export function LoginView() {
             )}
           </Pressable>
 
-          <View style={styles.divider}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>QUICK DEMO ACCOUNTS</Text>
-            <View style={styles.dividerLine} />
-          </View>
-
-          <View style={styles.quickButtons}>
-            <Pressable
-              style={({ pressed }) => [styles.quickButton, pressed && styles.quickButtonPressed]}
-              onPress={() =>
-                fillQuickAccount('student1@proxyproof.local', 'Password123!')
-              }
-              accessibilityRole="button"
-            >
-              <View style={styles.quickRolePill}>
-                <Text style={styles.quickRoleText}>Student (Alice)</Text>
+          {/* Real Register Institution Banner */}
+          {onNavigateToRegister && (
+            <View style={styles.instBanner}>
+              <View style={styles.instBannerLeft}>
+                <Building2 size={18} color="#009D96" strokeWidth={2.2} />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.instBannerTitle}>Registering an Institution?</Text>
+                  <Text style={styles.instBannerSub}>
+                    Setup your campus console &amp; access policy controls
+                  </Text>
+                </View>
               </View>
-              <Text style={styles.quickEmailText}>student1@proxyproof.local</Text>
-            </Pressable>
-
-            <Pressable
-              style={({ pressed }) => [styles.quickButton, pressed && styles.quickButtonPressed]}
-              onPress={() =>
-                fillQuickAccount('organizer@proxyproof.local', 'Password123!')
-              }
-              accessibilityRole="button"
-            >
-              <View style={[styles.quickRolePill, styles.quickRoleOrg]}>
-                <Text style={[styles.quickRoleText, styles.quickRoleTextOrg]}>Organizer (Turing)</Text>
-              </View>
-              <Text style={styles.quickEmailText}>organizer@proxyproof.local</Text>
-            </Pressable>
-
-            <Pressable
-              style={({ pressed }) => [styles.quickButton, pressed && styles.quickButtonPressed]}
-              onPress={() =>
-                fillQuickAccount('admin@proxyproof.local', 'Password123!')
-              }
-              accessibilityRole="button"
-            >
-              <View style={[styles.quickRolePill, styles.quickRoleAdmin]}>
-                <Text style={[styles.quickRoleText, styles.quickRoleTextAdmin]}>Admin (System)</Text>
-              </View>
-              <Text style={styles.quickEmailText}>admin@proxyproof.local</Text>
-            </Pressable>
-          </View>
+              <Pressable
+                style={({ pressed }) => [
+                  styles.instBannerBtn,
+                  pressed && styles.buttonPressed,
+                ]}
+                onPress={onNavigateToRegister}
+                accessibilityRole="button"
+              >
+                <Text style={styles.instBannerBtnText}>Register</Text>
+              </Pressable>
+            </View>
+          )}
 
           <View style={styles.footerNote}>
             <View style={styles.statusPillBadge}>
@@ -217,7 +209,7 @@ const styles = StyleSheet.create({
     maxWidth: 420,
     backgroundColor: '#FFFFFF',
     borderRadius: 24,
-    padding: 30,
+    padding: 28,
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.08,
@@ -226,12 +218,25 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: 'rgba(0, 0, 0, 0.08)',
   },
+  backBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 4,
+    alignSelf: 'flex-start',
+    marginBottom: 12,
+  },
+  backBtnText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#0B284C',
+  },
   headerBox: {
     alignItems: 'center',
-    marginBottom: 28,
+    marginBottom: 24,
   },
   logoWrapper: {
-    marginBottom: 14,
+    marginBottom: 12,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -243,7 +248,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 5,
     borderRadius: 100,
-    marginBottom: 10,
+    marginBottom: 8,
   },
   badgeText: {
     fontSize: 10,
@@ -252,23 +257,42 @@ const styles = StyleSheet.create({
     letterSpacing: 0.8,
   },
   subtitle: {
-    fontSize: 14,
-    color: '#5A697E',
+    fontSize: 13,
+    color: '#8E8E93',
     textAlign: 'center',
-    lineHeight: 19,
-    letterSpacing: -0.2,
+    lineHeight: 18,
+    paddingHorizontal: 10,
+  },
+  warningBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: 'rgba(255, 149, 0, 0.1)',
+    borderRadius: 12,
+    padding: 10,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 149, 0, 0.25)',
+  },
+  warningText: {
+    flex: 1,
+    fontSize: 11.5,
+    color: '#D97706',
+    lineHeight: 15,
   },
   errorBox: {
     backgroundColor: 'rgba(255, 59, 48, 0.1)',
     borderRadius: 12,
     padding: 12,
     marginBottom: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 59, 48, 0.3)',
   },
   errorText: {
-    fontSize: 13,
     color: '#FF3B30',
+    fontSize: 13,
+    fontWeight: '600',
     textAlign: 'center',
-    fontWeight: '500',
   },
   formGroup: {
     marginBottom: 16,
@@ -276,135 +300,97 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#0B192C',
-    marginBottom: 6,
-    letterSpacing: -0.1,
+    color: '#1C1C1E',
+    marginBottom: 8,
   },
   input: {
-    height: 48,
-    backgroundColor: '#F2F4F7',
-    borderWidth: 1,
-    borderColor: '#E2E6ED',
+    backgroundColor: '#F2F2F7',
     borderRadius: 12,
-    paddingHorizontal: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     fontSize: 15,
-    color: '#0B192C',
+    color: '#000000',
+    borderWidth: 1,
+    borderColor: 'transparent',
   },
   primaryButton: {
-    height: 50,
-    backgroundColor: '#0B284C',
+    backgroundColor: '#009D96',
     borderRadius: 14,
-    justifyContent: 'center',
+    paddingVertical: 14,
     alignItems: 'center',
+    justifyContent: 'center',
     marginTop: 8,
-    marginBottom: 20,
-    shadowColor: '#0B284C',
+    shadowColor: '#009D96',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,
     shadowRadius: 8,
     elevation: 3,
   },
+  primaryButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '700',
+  },
   buttonDisabled: {
     opacity: 0.6,
   },
   buttonPressed: {
-    opacity: 0.88,
-    transform: [{ scale: 0.98 }],
+    opacity: 0.85,
   },
-  primaryButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-    letterSpacing: -0.2,
+  btnPressed: {
+    opacity: 0.7,
   },
-  divider: {
+  instBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
-  },
-  dividerLine: {
-    flex: 1,
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: '#D1D1D6',
-  },
-  dividerText: {
-    marginHorizontal: 12,
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#8E8E93',
-    letterSpacing: 0.6,
-  },
-  quickButtons: {
-    gap: 8,
-  },
-  quickButton: {
-    backgroundColor: '#F2F2F7',
-    borderRadius: 12,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    backgroundColor: 'rgba(0, 157, 150, 0.07)',
+    borderRadius: 14,
+    padding: 12,
+    marginTop: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 157, 150, 0.2)',
+    gap: 10,
   },
-  quickButtonPressed: {
-    opacity: 0.75,
-    transform: [{ scale: 0.985 }],
-  },
-  quickRolePill: {
-    backgroundColor: 'rgba(0, 122, 255, 0.12)',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
-  },
-  quickRoleText: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#007AFF',
-  },
-  quickRoleOrg: {
-    backgroundColor: 'rgba(255, 149, 0, 0.12)',
-  },
-  quickRoleTextOrg: {
-    color: '#FF9500',
-  },
-  quickRoleAdmin: {
-    backgroundColor: 'rgba(255, 45, 85, 0.12)',
-  },
-  quickRoleTextAdmin: {
-    color: '#FF2D55',
-  },
-  quickEmailText: {
-    fontSize: 12,
-    color: '#636366',
-  },
-  warningBox: {
+  instBannerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    backgroundColor: 'rgba(255, 149, 0, 0.12)',
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 16,
-  },
-  warningText: {
+    gap: 10,
     flex: 1,
+  },
+  instBannerTitle: {
+    fontSize: 12.5,
+    fontWeight: '700',
+    color: '#0B284C',
+  },
+  instBannerSub: {
+    fontSize: 10.5,
+    color: '#636366',
+    marginTop: 1,
+  },
+  instBannerBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    backgroundColor: '#009D96',
+  },
+  instBannerBtnText: {
     fontSize: 12,
-    color: '#D97706',
-    textAlign: 'left',
-    lineHeight: 17,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
   footerNote: {
-    marginTop: 20,
     alignItems: 'center',
+    marginTop: 20,
   },
   statusPillBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: '#F2F2F7',
     paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 100,
+    paddingVertical: 5,
+    backgroundColor: '#F2F2F7',
+    borderRadius: 20,
   },
   statusDot: {
     width: 6,
@@ -412,7 +398,7 @@ const styles = StyleSheet.create({
     borderRadius: 3,
   },
   footerNoteText: {
-    fontSize: 11,
+    fontSize: 10.5,
     color: '#8E8E93',
     fontWeight: '500',
   },

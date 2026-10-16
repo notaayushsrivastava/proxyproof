@@ -19,6 +19,10 @@ import {
   StudentAttendanceRecord,
   AuditLogItem,
   User,
+  Institution,
+  InstitutionRegisterPayload,
+  InstitutionRegisterResponse,
+  InstitutionOverviewStats,
 } from '../types/api';
 
 const TOKEN_STORAGE_KEY = 'proxyproof_auth_token';
@@ -419,6 +423,37 @@ export const api = {
 
   async getAuditLogs(limit: number = 50, offset: number = 0): Promise<AuditLogItem[]> {
     return request<AuditLogItem[]>(`/admin/audit-logs?limit=${limit}&offset=${offset}`);
+  },
+
+  // --- INSTITUTIONS ---
+  async registerInstitution(data: InstitutionRegisterPayload): Promise<InstitutionRegisterResponse> {
+    const res = await request<InstitutionRegisterResponse>('/institutions/register', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+    if (res.access_token) {
+      await setAuthToken(res.access_token);
+    }
+    return res;
+  },
+
+  async getMyInstitution(): Promise<Institution> {
+    return request<Institution>('/institutions/me');
+  },
+
+  async updateInstitutionSettings(data: Partial<Institution>): Promise<Institution> {
+    return request<Institution>('/institutions/me', {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  },
+
+  async getInstitutionOverview(): Promise<InstitutionOverviewStats> {
+    return request<InstitutionOverviewStats>('/institutions/overview');
+  },
+
+  async listInstitutions(): Promise<Institution[]> {
+    return request<Institution[]>('/institutions/list');
   },
 
   async checkHealth(): Promise<{ status: string; database: string }> {

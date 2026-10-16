@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+Allow: /download
+Allow: /contact
+Allow: /privacy
+Allow: /terms
+Allow: /llms.txt
+Disallow: /api/
+Disallow: /docs
+Disallow: /redoc
+
+Sitemap: /sitemap.xml

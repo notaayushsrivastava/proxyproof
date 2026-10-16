@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="auto">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>404 — Page Not Found &bull; ProxyProof</title>
+  <meta name="description" content="The requested resource could not be found on the ProxyProof attendance service.">
+  <meta name="author" content="Aayush Srivastava">
+  
+  <!-- Favicons -->
+  <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+  <link rel="alternate icon" href="/static/favicon.ico">
+  <link rel="apple-touch-icon" href="/static/favicon.svg">
+
+  <style>
+    :root {
+      --font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --bg-color: #F2F4F7;
+      --bg-mesh: radial-gradient(at 50% 30%, rgba(0, 157, 150, 0.08) 0px, transparent 60%),
+                 radial-gradient(at 100% 0%, rgba(11, 40, 76, 0.07) 0px, transparent 50%);
+      --surface-card: #FFFFFF;
+      --border-color: rgba(226, 230, 237, 0.85);
+      --border-hover: rgba(0, 157, 150, 0.4);
+      --text-primary: #0B192C;
+      --text-secondary: #5A697E;
+      --text-muted: #8E9BAE;
+      --brand-navy: #0B284C;
+      --brand-teal: #009D96;
+      --brand-teal-light: #E0F4F4;
+      --shadow-lg: 0 16px 40px rgba(11, 40, 76, 0.08);
+      --glass-bg: rgba(255, 255, 255, 0.78);
+      --glass-border: rgba(255, 255, 255, 0.6);
+      --radius-full: 9999px;
+      --radius-xl: 28px;
+    }
+
+    [data-theme="dark"] {
+      --bg-color: #0B111A;
+      --bg-mesh: radial-gradient(at 50% 30%, rgba(0, 157, 150, 0.12) 0px, transparent 60%),
+                 radial-gradient(at 100% 0%, rgba(14, 51, 96, 0.25) 0px, transparent 60%);
+      --surface-card: #121A24;
+      --border-color: #223042;
+      --border-hover: rgba(0, 157, 150, 0.5);
+      --text-primary: #F0F4F8;
+      --text-secondary: #8B9BB0;
+      --text-muted: #55667A;
+      --brand-navy: #1C3D69;
+      --brand-teal: #00B3AB;
+      --brand-teal-light: #0D2D33;
+      --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.45);
+      --glass-bg: rgba(18, 26, 36, 0.82);
+      --glass-border: rgba(255, 255, 255, 0.08);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      [data-theme="auto"] {
+        --bg-color: #0B111A;
+        --bg-mesh: radial-gradient(at 50% 30%, rgba(0, 157, 150, 0.12) 0px, transparent 60%),
+                   radial-gradient(at 100% 0%, rgba(14, 51, 96, 0.25) 0px, transparent 60%);
+        --surface-card: #121A24;
+        --border-color: #223042;
+        --border-hover: rgba(0, 157, 150, 0.5);
+        --text-primary: #F0F4F8;
+        --text-secondary: #8B9BB0;
+        --text-muted: #55667A;
+        --brand-navy: #1C3D69;
+        --brand-teal: #00B3AB;
+        --brand-teal-light: #0D2D33;
+        --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.45);
+        --glass-bg: rgba(18, 26, 36, 0.82);
+        --glass-border: rgba(255, 255, 255, 0.08);
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      font-family: var(--font-family);
+      background-color: var(--bg-color);
+      background-image: var(--bg-mesh);
+      background-attachment: fixed;
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .container {
+      max-width: 680px;
+      margin: auto;
+      padding: 40px 24px;
+      text-align: center;
+    }
+
+    .error-card {
+      background: var(--surface-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-xl);
+      padding: 56px 40px;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .error-code {
+      font-size: 5rem;
+      font-weight: 800;
+      letter-spacing: -0.05em;
+      line-height: 1;
+      color: var(--brand-teal);
+      margin-bottom: 16px;
+    }
+
+    .error-title {
+      font-size: 1.8rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      color: var(--text-primary);
+      margin-bottom: 12px;
+    }
+
+    .error-desc {
+      font-size: 1.05rem;
+      color: var(--text-secondary);
+      margin-bottom: 36px;
+      line-height: 1.5;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 14px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--font-family);
+      font-size: 0.94rem;
+      font-weight: 600;
+      padding: 12px 24px;
+      border-radius: var(--radius-full);
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.15s ease;
+    }
+
+    .btn:active {
+      transform: scale(0.97);
+    }
+
+    .btn-primary {
+      background-color: var(--brand-navy);
+      color: #FFFFFF;
+    }
+
+    [data-theme="dark"] .btn-primary {
+      background-color: var(--brand-teal);
+      color: #06172D;
+    }
+
+    .btn-secondary {
+      background-color: transparent;
+      border-color: var(--border-color);
+      color: var(--text-primary);
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--brand-teal);
+    }
+
+    .footer {
+      padding: 24px 0;
+      text-align: center;
+      font-size: 0.88rem;
+      color: var(--text-secondary);
+    }
+
+    .footer a {
+      color: var(--text-primary);
+      font-weight: 600;
+      text-decoration: underline;
+      text-decoration-color: var(--brand-teal);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="error-card">
+      <!-- Shield SVG Graphic -->
+      <svg width="64" height="64" viewBox="70 715 530 580" fill="none" style="margin-bottom: 20px;">
+        <path fill="#0B284C" d="M 267.899 1270.57 C 256.195 1263.46 244.09 1257.23 232.312 1249.93 C 160.277 1205.51 98.336 1133.74 94.1308 1045.7 C 92.6529 1014.76 94.4296 982.223 93.163 951.058 C 92.8019 942.174 91.3632 898.896 100.065 895.754 C 146.199 879.095 193.127 865.2 237.221 842.899 C 247.982 838.409 266.811 826.262 277.688 824.374 C 293.375 824.408 315.213 839.646 329.247 845.366 C 360.286 858.018 395.013 875.311 426.919 884.228 L 427.975 884.514 C 436.941 887.969 437.849 890.983 443.212 899.02 C 471.39 945.973 468.918 971.759 467.602 1023.9 C 467.336 1034.43 467.5 1044.6 466.455 1055.2 C 465.346 1066.25 463.41 1077.2 460.664 1087.97 C 444.782 1150.79 399.067 1202.94 346.786 1239.03 C 334.432 1247.56 317.47 1257.54 304.336 1265.31 C 302.534 1266.38 300.726 1267.43 298.913 1268.48 C 286.471 1273.45 284.285 1277.74 271.056 1271.93 L 267.899 1270.57 z"/>
+        <path fill="#009D96" d="M 361.444 953.092 C 362.596 953.016 363.75 952.955 364.904 952.908 C 381.696 952.179 399.195 968 399.681 984.95 C 400.086 999.044 390.128 1006.74 381.122 1016.24 C 345.31 1054 309.733 1092.05 273.637 1129.55 C 269.847 1134.04 261.49 1137.02 255.583 1136.44 C 239.062 1134.8 218.699 1109.28 207.951 1097.59 C 196.477 1085.46 170.783 1066.28 171.631 1052.24 C 174.176 1010.07 213.886 1006.67 235.27 1039.11 C 237.601 1042.65 251.472 1055.77 254.244 1058.34 C 280.876 1031.46 306.345 1003.4 332.815 976.358 C 341.885 967.091 348.861 957.346 361.444 953.092 z"/>
+        <path fill="#009D96" d="M 571.745 924.419 C 566.229 926.906 561.117 927.99 555.038 926.843 C 549.822 925.856 545.222 922.812 542.274 918.397 C 539.476 914.204 538.052 903.369 536.147 897.672 C 530.087 880.089 521.375 863.536 510.312 848.586 C 482.438 810.721 436.499 787.324 391.716 781.244 C 375.002 778.975 370.549 748.711 387.417 742.876 C 403.258 737.396 428.02 747.836 443.588 752.634 C 503.811 774.042 555.163 823.59 573.891 885.208 C 577.63 897.51 581.311 906.625 576.435 919.151 C 575.607 920.054 572.207 923.633 571.745 924.419 z"/>
+        <path fill="#009D96" d="M 375.834 825.198 C 376.095 811.381 382.958 801.006 397.649 803.751 C 435.69 810.86 469.673 833.06 493.205 863.493 C 508.208 882.896 514.899 901.395 519.586 925.012 C 516.615 934.423 515.627 938.641 506.03 942.915 C 490.686 944.361 485.701 940.83 480.572 926.702 C 470.864 879.078 432.104 852.916 387.868 841.306 C 380.045 837.191 378.097 833.6 375.834 825.198 z"/>
+      </svg>
+
+      <div class="error-code">404</div>
+      <h1 class="error-title">Cryptographic Route Not Found</h1>
+      <p class="error-desc">
+        The destination URL does not exist or may have expired. Please verify your link or return to the main dashboard.
+      </p>
+
+      <div class="btn-group">
+        <a href="/" class="btn btn-primary">&larr; Return to Home</a>
+        <a href="/download" class="btn btn-secondary">Download App</a>
+        <a href="/contact" class="btn btn-secondary">Contact Support</a>
+        <a href="/docs" class="btn btn-secondary">API Docs</a>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div style="margin-bottom: 6px;">
+      <a href="/">Home</a> &bull; 
+      <a href="/download">Download</a> &bull; 
+      <a href="/contact">Contact</a> &bull; 
+      <a href="/privacy">Privacy</a> &bull; 
+      <a href="/terms">Terms</a>
+    </div>
+    Copyright &copy; 2026 ProxyProof. Created by <a href="https://aayushsrivastava.com" target="_blank" rel="noopener noreferrer">Aayush Srivastava</a>. All rights reserved.
+  </footer>
+</body>
+</html>

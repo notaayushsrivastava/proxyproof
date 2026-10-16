@@ -11,6 +11,7 @@ from backend.app.models import (
     AttendanceRecord,
     AttendanceAttempt,
     AuditLog,
+    Institution,
 )
 
 __all__ = ["Base"]

@@ -9,6 +9,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<User>;
+  registerInstitution: (data: import('../types/api').InstitutionRegisterPayload) => Promise<User>;
   logout: () => Promise<void>;
   refreshMe: () => Promise<User | null>;
 }
@@ -58,6 +59,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return authRes.user;
   };
 
+  const registerInstitution = async (
+    data: import('../types/api').InstitutionRegisterPayload
+  ): Promise<User> => {
+    const regRes = await api.registerInstitution(data);
+    await setAuthToken(regRes.access_token);
+    setTokenState(regRes.access_token);
+    setUser(regRes.admin_user);
+    return regRes.admin_user;
+  };
+
   const logout = async () => {
     try {
       await api.logout();
@@ -88,6 +99,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isAuthenticated: !!user,
         isLoading,
         login,
+        registerInstitution,
         logout,
         refreshMe,
       }}

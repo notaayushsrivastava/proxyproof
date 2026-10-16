@@ -12,8 +12,11 @@ for _p in [str(_repo_root), str(_backend_dir)]:
 
 import logging
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Depends, status, HTTPException
+from fastapi import FastAPI, Depends, status, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse, FileResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
+from starlette.exceptions import HTTPException as StarletteHTTPException
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 from backend.app.core.config import settings
@@ -22,10 +25,19 @@ from backend.app.db.session import get_db
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("proxyproof")
 
+_static_dir = _backend_dir / "app" / "static"
+_templates_dir = _backend_dir / "app" / "templates"
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("Starting ProxyProof API (%s environment)", settings.ENVIRONMENT)
+    try:
+        from backend.app.db.base import Base
+        from backend.app.db.session import engine
+        Base.metadata.create_all(bind=engine)
+    except Exception as e:
+        logger.warning("Auto table initialization notice: %s", e)
     yield
     logger.info("Shutting down ProxyProof API")
 
@@ -50,15 +62,91 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Mount Static Assets Directory
+if _static_dir.exists():
+    app.mount("/static", StaticFiles(directory=str(_static_dir)), name="static")
 
-@app.get("/", tags=["Root"])
-def root():
+
+@app.get("/", tags=["Web"])
+def root(request: Request):
+    """Serve the ProxyProof landing page for web browsers, or service metadata for JSON API clients."""
+    accept = request.headers.get("accept", "")
+    if "text/html" in accept or "*/*" in accept or not accept:
+        landing_file = _templates_dir / "index.html"
+        if landing_file.exists():
+            return FileResponse(landing_file, media_type="text/html")
     return {
         "service": settings.PROJECT_NAME,
         "version": "1.0.0",
         "docs_url": "/docs",
         "api_v1": settings.API_V1_STR,
     }
+
+
+@app.get("/download", response_class=HTMLResponse, tags=["Web"])
+def download_page():
+    return FileResponse(_templates_dir / "download.html", media_type="text/html")
+
+
+@app.get("/contact", response_class=HTMLResponse, tags=["Web"])
+def contact_page():
+    return FileResponse(_templates_dir / "contact.html", media_type="text/html")
+
+
+@app.get("/privacy", response_class=HTMLResponse, tags=["Web"])
+def privacy_page():
+    return FileResponse(_templates_dir / "privacy.html", media_type="text/html")
+
+
+@app.get("/terms", response_class=HTMLResponse, tags=["Web"])
+def terms_page():
+    return FileResponse(_templates_dir / "terms.html", media_type="text/html")
+
+
+@app.get("/404", response_class=HTMLResponse, tags=["Web"])
+def not_found_page():
+    return FileResponse(_templates_dir / "404.html", status_code=404, media_type="text/html")
+
+
+@app.get("/robots.txt", tags=["SEO"])
+def robots_txt():
+    return FileResponse(_static_dir / "robots.txt", media_type="text/plain")
+
+
+@app.get("/sitemap.xml", tags=["SEO"])
+def sitemap_xml():
+    return FileResponse(_static_dir / "sitemap.xml", media_type="application/xml")
+
+
+@app.get("/llms.txt", tags=["SEO"])
+def llms_txt():
+    return FileResponse(_static_dir / "llms.txt", media_type="text/plain; charset=utf-8")
+
+
+@app.get("/favicon.ico", tags=["Favicon"])
+def favicon_ico():
+    return FileResponse(_static_dir / "favicon.ico", media_type="image/x-icon")
+
+
+@app.get("/favicon.svg", tags=["Favicon"])
+def favicon_svg():
+    return FileResponse(_static_dir / "favicon.svg", media_type="image/svg+xml")
+
+
+@app.exception_handler(StarletteHTTPException)
+async def http_exception_handler(request: Request, exc: StarletteHTTPException):
+    if exc.status_code == 404:
+        if request.url.path.startswith("/api/"):
+            return JSONResponse(status_code=404, content={"detail": exc.detail or "Not Found"})
+        not_found_file = _templates_dir / "404.html"
+        if not_found_file.exists():
+            return FileResponse(
+                not_found_file,
+                status_code=404,
+                media_type="text/html",
+            )
+    return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
+
 
 
 @app.get("/health", tags=["Health"])

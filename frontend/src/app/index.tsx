@@ -22,7 +22,9 @@ import {
 import { useAuth } from '../store/auth';
 import { Header } from '../components/Header';
 import { Sidebar } from '../components/Sidebar';
+import { LandingView } from '../components/LandingView';
 import { LoginView } from '../components/LoginView';
+import { RegisterInstitutionView } from '../components/RegisterInstitutionView';
 import { StudentHomeView } from '../components/StudentHomeView';
 import { StudentClassesView } from '../components/StudentClassesView';
 import { StudentDeviceView } from '../components/StudentDeviceView';
@@ -44,6 +46,7 @@ export default function AppEntry() {
   const [organizerTab, setOrganizerTab] = useState<OrganizerTab>('live');
   const [adminTab, setAdminTab] = useState<AdminTab>('overview');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [unauthScreen, setUnauthScreen] = useState<'landing' | 'login' | 'register'>('landing');
 
   if (isLoading) {
     return (
@@ -55,7 +58,28 @@ export default function AppEntry() {
   }
 
   if (!isAuthenticated || !user) {
-    return <LoginView />;
+    if (unauthScreen === 'login') {
+      return (
+        <LoginView
+          onNavigateToRegister={() => setUnauthScreen('register')}
+          onNavigateToLanding={() => setUnauthScreen('landing')}
+        />
+      );
+    }
+    if (unauthScreen === 'register') {
+      return (
+        <RegisterInstitutionView
+          onBackToLanding={() => setUnauthScreen('landing')}
+          onNavigateToLogin={() => setUnauthScreen('login')}
+        />
+      );
+    }
+    return (
+      <LandingView
+        onSignIn={() => setUnauthScreen('login')}
+        onRegisterInstitution={() => setUnauthScreen('register')}
+      />
+    );
   }
 
   const getPageInfo = () => {

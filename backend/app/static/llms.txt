@@ -1,0 +1,39 @@
+# ProxyProof — Cryptographic Bluetooth Low Energy Attendance System
+
+> Institutional Anti-Proxy Attendance Verification Platform
+> Author & Creator: Aayush Srivastava (https://aayushsrivastava.com)
+> Direct Contact: aayush@aayushsrivastava.com
+> Downloads: /download (iOS & Android releases)
+> Support & Inquiries: /contact
+> Copyright: (c) 2026 ProxyProof. All rights reserved.
+
+## System Overview
+ProxyProof is an institutional attendance management system built to eliminate classroom attendance fraud ("buddy punching", WhatsApp QR screenshot forwarding, and GPS spoofing). It fuses ephemeral Bluetooth Low Energy (BLE) broadcast nonces with 1:1 hardware device key binding and server-side cryptographic audit validation.
+
+## Core Problem & Solution
+- **The Problem:** Traditional methods fail in modern universities. Paper roll-calls consume 15 minutes of lecture time. QR codes are screenshotted and messaged to students outside the building. GPS coordinates are easily spoofed with virtual location apps or violate student privacy by tracking off-campus locations.
+- **The ProxyProof Solution:** The instructor's phone broadcasts a continuous BLE advertisement packet carrying an ephemeral cryptographic token generated via HMAC-SHA256 that changes every 5 seconds. The token expires before a screenshot or message can be transmitted to an absent student. Simultaneously, attendance submissions must be signed by the student's unique hardware-bound cryptographic key, stopping one student from checking in multiple classmates on one phone.
+
+## Architectural Specifications
+- **BLE Beacon Frequency:** Ephemeral broadcast slots rotate every 5,000 milliseconds (5 seconds).
+- **Slot Drift Tolerance:** Server evaluates active time slot $t \in [-1, 0, +1]$ relative to standard epoch to tolerate minor packet arrival variance while rejecting replay attempts.
+- **Physical Proximity Assurance:** Multi-sample median Received Signal Strength Indicator (RSSI) thresholding ($\ge 3$ distinct samples with median $\ge -78$ dBm) verifies that the student is physically within the lecture hall, not outside in the hallway.
+- **Device Cryptographic Binding:** 1:1 relationship between student account and hardware fingerprint. Secondary device logins require administrative re-authorization.
+- **Sub-Second Throughput:** Mean check-in verification latency is under 350ms, supporting large lecture halls with hundreds of students checking in simultaneously.
+
+## API Architecture
+- **Framework:** FastAPI (Python 3.11+) with Asyncpg / Psycopg3 and SQLAlchemy ORM.
+- **Database:** PostgreSQL with full relational integrity, foreign key cascading, and immutable audit logs.
+- **Authentication:** JWT Bearer tokens with role-based access control (Student, Professor, Admin).
+- **Core Endpoints:**
+  - `POST /api/v1/auth/login`: Issue bearer tokens with user credentials.
+  - `GET /api/v1/auth/me`: Resolve current authenticated user profile and roles.
+  - `GET /api/v1/sessions/active`: Retrieve active sessions for enrolled classes.
+  - `POST /api/v1/sessions/{id}/attendance-attempts`: Ingest student BLE signature and verify attendance.
+  - `GET /api/v1/classes`: Faculty and student course listings.
+  - `GET /api/v1/health`: Readiness probe and database connection status.
+
+## Privacy & Security Standards
+- **Zero GPS Tracking:** The system relies strictly on short-range Bluetooth Low Energy physical attenuation. Location coordinates are never requested, transmitted, or logged.
+- **No Background Monitoring:** BLE scanning only occurs during explicit user-initiated check-in action.
+- **FERPA & GDPR Compliance:** Minimalist personal data storage (institutional student ID, email, hashed password, enrolled class IDs). All session audit trails are encrypted at rest.

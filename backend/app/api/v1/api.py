@@ -8,11 +8,13 @@ from backend.app.api.v1.endpoints import (
     attendance,
     students,
     websocket,
+    institutions,
 )
 
 api_router = APIRouter()
 
 api_router.include_router(auth.router, prefix="/auth", tags=["Authentication"])
+api_router.include_router(institutions.router, prefix="/institutions", tags=["Institutions"])
 api_router.include_router(devices.router, prefix="/devices", tags=["Devices"])
 api_router.include_router(classes.router, prefix="/classes", tags=["Classes"])
 api_router.include_router(sessions.router, tags=["Sessions"])

@@ -14,6 +14,7 @@ from backend.app.models.device import Device, DeviceChangeRequest
 from backend.app.models.session import AttendanceSession
 from backend.app.models.attendance import AttendanceRecord, AttendanceAttempt
 from backend.app.models.audit import AuditLog
+from backend.app.models.institution import Institution
 
 __all__ = [
     "UserRole",
@@ -34,4 +35,5 @@ __all__ = [
     "AttendanceRecord",
     "AttendanceAttempt",
     "AuditLog",
+    "Institution",
 ]

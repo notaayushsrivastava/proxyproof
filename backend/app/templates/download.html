@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="auto">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Download ProxyProof — iOS &amp; Android Apps</title>
+  <meta name="description" content="Download the ProxyProof mobile app for iOS (App Store / TestFlight) and Android (Google Play / APK). Seamless zero-fraud classroom attendance.">
+  <meta name="author" content="Aayush Srivastava">
+  
+  <!-- Favicons -->
+  <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+  <link rel="alternate icon" href="/static/favicon.ico">
+  <link rel="apple-touch-icon" href="/static/favicon.svg">
+  <link rel="canonical" href="https://proxyproof.internal/download">
+
+  <style>
+    :root {
+      --font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --bg-color: #F2F4F7;
+      --bg-mesh: radial-gradient(at 0% 0%, rgba(0, 157, 150, 0.08) 0px, transparent 50%),
+                 radial-gradient(at 100% 0%, rgba(11, 40, 76, 0.07) 0px, transparent 50%);
+      --surface-card: #FFFFFF;
+      --surface-subtle: #F8FAFC;
+      --border-color: rgba(226, 230, 237, 0.85);
+      --border-hover: rgba(0, 157, 150, 0.4);
+      --text-primary: #0B192C;
+      --text-secondary: #5A697E;
+      --text-muted: #8E9BAE;
+      --brand-navy: #0B284C;
+      --brand-teal: #009D96;
+      --brand-teal-light: #E0F4F4;
+      --brand-blue: #007AFF;
+      --shadow-sm: 0 2px 8px rgba(11, 40, 76, 0.04);
+      --shadow-md: 0 8px 24px rgba(11, 40, 76, 0.06);
+      --shadow-lg: 0 16px 40px rgba(11, 40, 76, 0.08);
+      --glass-bg: rgba(255, 255, 255, 0.78);
+      --glass-border: rgba(255, 255, 255, 0.6);
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+      --radius-xl: 28px;
+      --radius-full: 9999px;
+    }
+
+    [data-theme="dark"] {
+      --bg-color: #0B111A;
+      --bg-mesh: radial-gradient(at 0% 0%, rgba(0, 157, 150, 0.12) 0px, transparent 60%),
+                 radial-gradient(at 100% 0%, rgba(14, 51, 96, 0.25) 0px, transparent 60%);
+      --surface-card: #121A24;
+      --surface-subtle: #151F2C;
+      --border-color: #223042;
+      --border-hover: rgba(0, 157, 150, 0.5);
+      --text-primary: #F0F4F8;
+      --text-secondary: #8B9BB0;
+      --text-muted: #55667A;
+      --brand-navy: #1C3D69;
+      --brand-teal: #00B3AB;
+      --brand-teal-light: #0D2D33;
+      --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.25);
+      --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.35);
+      --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.45);
+      --glass-bg: rgba(18, 26, 36, 0.82);
+      --glass-border: rgba(255, 255, 255, 0.08);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      [data-theme="auto"] {
+        --bg-color: #0B111A;
+        --bg-mesh: radial-gradient(at 0% 0%, rgba(0, 157, 150, 0.12) 0px, transparent 60%),
+                   radial-gradient(at 100% 0%, rgba(14, 51, 96, 0.25) 0px, transparent 60%);
+        --surface-card: #121A24;
+        --surface-subtle: #151F2C;
+        --border-color: #223042;
+        --border-hover: rgba(0, 157, 150, 0.5);
+        --text-primary: #F0F4F8;
+        --text-secondary: #8B9BB0;
+        --text-muted: #55667A;
+        --brand-navy: #1C3D69;
+        --brand-teal: #00B3AB;
+        --brand-teal-light: #0D2D33;
+        --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.25);
+        --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.35);
+        --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.45);
+        --glass-bg: rgba(18, 26, 36, 0.82);
+        --glass-border: rgba(255, 255, 255, 0.08);
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      font-family: var(--font-family);
+      background-color: var(--bg-color);
+      background-image: var(--bg-mesh);
+      background-attachment: fixed;
+      color: var(--text-primary);
+      line-height: 1.5;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .container {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* Navbar */
+    .navbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      border-bottom: 1px solid var(--glass-border);
+    }
+
+    .nav-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 72px;
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    .brand-lockup {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 700;
+      font-size: 1.25rem;
+      letter-spacing: -0.03em;
+    }
+
+    .brand-logo-svg {
+      width: 36px;
+      height: 36px;
+      display: block;
+    }
+
+    .brand-name .proof {
+      color: var(--brand-teal);
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+      list-style: none;
+    }
+
+    @media (max-width: 768px) {
+      .nav-links {
+        display: none;
+      }
+    }
+
+    .nav-link {
+      font-size: 0.92rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      transition: color 0.15s ease;
+    }
+
+    .nav-link:hover, .nav-link.active {
+      color: var(--brand-teal);
+    }
+
+    .theme-toggle-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius-full);
+      background: var(--surface-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+
+    .theme-toggle-btn:hover {
+      color: var(--text-primary);
+      border-color: var(--border-hover);
+    }
+
+    /* Hero */
+    .download-hero {
+      text-align: center;
+      padding: 64px 0 40px;
+    }
+
+    .badge-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: var(--radius-full);
+      background-color: var(--brand-teal-light);
+      border: 1px solid rgba(0, 157, 150, 0.25);
+      color: var(--brand-teal);
+      font-size: 0.82rem;
+      font-weight: 600;
+      margin-bottom: 20px;
+    }
+
+    .hero-title {
+      font-size: clamp(2.2rem, 4.5vw, 3.4rem);
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      line-height: 1.12;
+      color: var(--text-primary);
+      margin-bottom: 16px;
+    }
+
+    .hero-subtitle {
+      font-size: 1.1rem;
+      color: var(--text-secondary);
+      max-width: 640px;
+      margin: 0 auto;
+      line-height: 1.55;
+    }
+
+    /* Platforms Grid */
+    .platforms-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 28px;
+      margin: 40px 0 60px;
+    }
+
+    @media (max-width: 768px) {
+      .platforms-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .platform-card {
+      background: var(--surface-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-xl);
+      padding: 36px 32px;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    }
+
+    .platform-card:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-md);
+      border-color: var(--border-hover);
+    }
+
+    .platform-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .platform-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: var(--radius-md);
+      background: var(--brand-teal-light);
+      color: var(--brand-teal);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .platform-title {
+      font-size: 1.45rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--text-primary);
+    }
+
+    .platform-version {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .platform-desc {
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+      margin-bottom: 24px;
+      line-height: 1.55;
+    }
+
+    .platform-specs {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 28px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .spec-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.88rem;
+      color: var(--text-secondary);
+    }
+
+    .spec-item svg {
+      color: var(--brand-teal);
+      flex-shrink: 0;
+    }
+
+    .action-group {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      font-family: var(--font-family);
+      font-size: 0.95rem;
+      font-weight: 600;
+      padding: 13px 22px;
+      border-radius: var(--radius-full);
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.15s ease;
+      text-decoration: none;
+      user-select: none;
+    }
+
+    .btn:active {
+      transform: scale(0.97);
+    }
+
+    .btn-primary {
+      background-color: var(--brand-navy);
+      color: #FFFFFF;
+      box-shadow: 0 4px 14px rgba(11, 40, 76, 0.18);
+    }
+
+    [data-theme="dark"] .btn-primary {
+      background-color: var(--brand-teal);
+      color: #06172D;
+    }
+
+    .btn-primary:hover {
+      opacity: 0.94;
+    }
+
+    .btn-secondary {
+      background-color: var(--surface-subtle);
+      border-color: var(--border-color);
+      color: var(--text-primary);
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--brand-teal);
+    }
+
+    /* Installation Steps */
+    .install-steps {
+      background: var(--surface-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-xl);
+      padding: 40px;
+      margin-bottom: 60px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .install-steps h3 {
+      font-size: 1.35rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 24px;
+      color: var(--text-primary);
+    }
+
+    .steps-list {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+
+    @media (max-width: 768px) {
+      .steps-list {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .step-box {
+      background: var(--surface-subtle);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 20px;
+    }
+
+    .step-num {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--brand-teal);
+      color: #FFFFFF;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.85rem;
+      margin-bottom: 12px;
+    }
+
+    .step-box h4 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+      color: var(--text-primary);
+    }
+
+    .step-box p {
+      font-size: 0.88rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    /* Footer */
+    .footer {
+      border-top: 1px solid var(--border-color);
+      background: var(--surface-card);
+      padding: 36px 0;
+      text-align: center;
+      font-size: 0.88rem;
+      color: var(--text-secondary);
+    }
+
+    .footer a {
+      color: var(--text-primary);
+      font-weight: 600;
+      text-decoration: underline;
+      text-decoration-color: var(--brand-teal);
+      text-underline-offset: 3px;
+    }
+
+    .footer a:hover {
+      color: var(--brand-teal);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation -->
+  <header class="navbar">
+    <div class="nav-inner">
+      <a href="/" class="brand-lockup" aria-label="ProxyProof Home">
+        <svg class="brand-logo-svg" viewBox="70 715 530 580" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path fill="#0B284C" d="M 267.899 1270.57 C 256.195 1263.46 244.09 1257.23 232.312 1249.93 C 160.277 1205.51 98.336 1133.74 94.1308 1045.7 C 92.6529 1014.76 94.4296 982.223 93.163 951.058 C 92.8019 942.174 91.3632 898.896 100.065 895.754 C 146.199 879.095 193.127 865.2 237.221 842.899 C 247.982 838.409 266.811 826.262 277.688 824.374 C 293.375 824.408 315.213 839.646 329.247 845.366 C 360.286 858.018 395.013 875.311 426.919 884.228 L 427.975 884.514 C 436.941 887.969 437.849 890.983 443.212 899.02 C 471.39 945.973 468.918 971.759 467.602 1023.9 C 467.336 1034.43 467.5 1044.6 466.455 1055.2 C 465.346 1066.25 463.41 1077.2 460.664 1087.97 C 444.782 1150.79 399.067 1202.94 346.786 1239.03 C 334.432 1247.56 317.47 1257.54 304.336 1265.31 C 302.534 1266.38 300.726 1267.43 298.913 1268.48 C 286.471 1273.45 284.285 1277.74 271.056 1271.93 L 267.899 1270.57 z"/>
+          <path fill="#009D96" d="M 361.444 953.092 C 362.596 953.016 363.75 952.955 364.904 952.908 C 381.696 952.179 399.195 968 399.681 984.95 C 400.086 999.044 390.128 1006.74 381.122 1016.24 C 345.31 1054 309.733 1092.05 273.637 1129.55 C 269.847 1134.04 261.49 1137.02 255.583 1136.44 C 239.062 1134.8 218.699 1109.28 207.951 1097.59 C 196.477 1085.46 170.783 1066.28 171.631 1052.24 C 174.176 1010.07 213.886 1006.67 235.27 1039.11 C 237.601 1042.65 251.472 1055.77 254.244 1058.34 C 280.876 1031.46 306.345 1003.4 332.815 976.358 C 341.885 967.091 348.861 957.346 361.444 953.092 z"/>
+          <path fill="#009D96" d="M 571.745 924.419 C 566.229 926.906 561.117 927.99 555.038 926.843 C 549.822 925.856 545.222 922.812 542.274 918.397 C 539.476 914.204 538.052 903.369 536.147 897.672 C 530.087 880.089 521.375 863.536 510.312 848.586 C 482.438 810.721 436.499 787.324 391.716 781.244 C 375.002 778.975 370.549 748.711 387.417 742.876 C 403.258 737.396 428.02 747.836 443.588 752.634 C 503.811 774.042 555.163 823.59 573.891 885.208 C 577.63 897.51 581.311 906.625 576.435 919.151 C 575.607 920.054 572.207 923.633 571.745 924.419 z"/>
+          <path fill="#009D96" d="M 375.834 825.198 C 376.095 811.381 382.958 801.006 397.649 803.751 C 435.69 810.86 469.673 833.06 493.205 863.493 C 508.208 882.896 514.899 901.395 519.586 925.012 C 516.615 934.423 515.627 938.641 506.03 942.915 C 490.686 944.361 485.701 940.83 480.572 926.702 C 470.864 879.078 432.104 852.916 387.868 841.306 C 380.045 837.191 378.097 833.6 375.834 825.198 z"/>
+        </svg>
+        <span class="brand-name">Proxy<span class="proof">Proof</span></span>
+      </a>
+
+      <ul class="nav-links">
+        <li><a href="/" class="nav-link">Home</a></li>
+        <li><a href="/#features" class="nav-link">Features</a></li>
+        <li><a href="/download" class="nav-link active">Download</a></li>
+        <li><a href="/contact" class="nav-link">Contact</a></li>
+        <li><a href="/docs" class="nav-link">Docs</a></li>
+      </ul>
+
+      <div style="display: flex; align-items: center; gap: 14px;">
+        <button id="themeToggle" class="theme-toggle-btn" aria-label="Toggle theme">
+          <svg id="themeIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Content -->
+  <main class="container">
+    <section class="download-hero">
+      <div class="badge-pill">Mobile Releases v1.0.4</div>
+      <h1 class="hero-title">Get ProxyProof for Your Phone</h1>
+      <p class="hero-subtitle">
+        Download the official application for students and faculty. Available for iOS and Android with fast, frictionless classroom check-ins.
+      </p>
+    </section>
+
+    <!-- Download Cards -->
+    <div class="platforms-grid">
+      <!-- Apple iOS -->
+      <div class="platform-card">
+        <div>
+          <div class="platform-header">
+            <div class="platform-icon">
+              <!-- Apple Icon -->
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.37c.62-.75 1.04-1.8 0.92-2.85-.9.04-1.98.6-2.62 1.35-.57.65-1.06 1.72-.93 2.74 1 .08 2.02-.49 2.63-1.24z"/>
+              </svg>
+            </div>
+            <div>
+              <h2 class="platform-title">iOS App</h2>
+              <div class="platform-version">Version 1.0.4 &bull; iPhone &amp; iPad</div>
+            </div>
+          </div>
+
+          <p class="platform-desc">
+            Optimized for iOS with Apple Human Interface Guidelines, haptic feedback, and low-latency Bluetooth scanning.
+          </p>
+
+          <ul class="platform-specs">
+            <li class="spec-item">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span>Requires <strong>iOS 15.0 or later</strong></span>
+            </li>
+            <li class="spec-item">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span>Built for iPhone 8 and newer, iPad Pro/Air</span>
+            </li>
+            <li class="spec-item">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span>1:1 Secure Enclave Hardware Binding</span>
+            </li>
+          </ul>
+        </div>
+
+        <div class="action-group">
+          <a href="https://testflight.apple.com" target="_blank" rel="noopener noreferrer" class="btn btn-primary">
+            Join TestFlight Beta
+          </a>
+          <a href="https://apps.apple.com" target="_blank" rel="noopener noreferrer" class="btn btn-secondary">
+            View on App Store
+          </a>
+        </div>
+      </div>
+
+      <!-- Android -->
+      <div class="platform-card">
+        <div>
+          <div class="platform-header">
+            <div class="platform-icon">
+              <!-- Android Icon -->
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="8" y1="2" x2="10" y2="5"></line>
+                <line x1="16" y1="2" x2="14" y2="5"></line>
+                <rect x="4" y="6" width="16" height="14" rx="4"></rect>
+                <circle cx="9" cy="11" r="1"></circle>
+                <circle cx="15" cy="11" r="1"></circle>
+              </svg>
+            </div>
+            <div>
+              <h2 class="platform-title">Android App</h2>
+              <div class="platform-version">Version 1.0.4 &bull; Universal APK &amp; Play</div>
+            </div>
+          </div>
+
+          <p class="platform-desc">
+            Universal Android package supporting Samsung, Pixel, OnePlus, Xiaomi, and all BLE-capable devices.
+          </p>
+
+          <ul class="platform-specs">
+            <li class="spec-item">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span>Requires <strong>Android 10.0 (API 29) or later</strong></span>
+            </li>
+            <li class="spec-item">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span>Bluetooth Low Energy (BLE 4.2+)</span>
+            </li>
+            <li class="spec-item">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span>Hardware-backed KeyStore integration</span>
+            </li>
+          </ul>
+        </div>
+
+        <div class="action-group">
+          <a href="#" onclick="alert('Direct APK download initiated: ProxyProof-v1.0.4-universal.apk'); return false;" class="btn btn-primary">
+            Download Direct APK (.apk)
+          </a>
+          <a href="https://play.google.com" target="_blank" rel="noopener noreferrer" class="btn btn-secondary">
+            Get on Google Play
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3-Step Setup -->
+    <section class="install-steps">
+      <h3>Quick 3-Minute Setup</h3>
+      <div class="steps-list">
+        <div class="step-box">
+          <div class="step-num">1</div>
+          <h4>Install App</h4>
+          <p>Install ProxyProof on your personal phone via TestFlight, App Store, or Google Play.</p>
+        </div>
+        <div class="step-box">
+          <div class="step-num">2</div>
+          <h4>Allow Bluetooth</h4>
+          <p>Accept Bluetooth and Nearby Device permissions so the app can hear the instructor’s beacon.</p>
+        </div>
+        <div class="step-box">
+          <div class="step-num">3</div>
+          <h4>Log In &amp; Lock</h4>
+          <p>Sign in with your university student email. Your device locks to your profile automatically.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div style="margin-bottom: 8px;">
+        <a href="/">Home</a> &bull; 
+        <a href="/download">Download</a> &bull; 
+        <a href="/contact">Contact</a> (<a href="mailto:aayush@aayushsrivastava.com">aayush@aayushsrivastava.com</a>) &bull; 
+        <a href="/privacy">Privacy</a> &bull; 
+        <a href="/terms">Terms</a>
+      </div>
+      <div>
+        Copyright &copy; 2026 ProxyProof. Created by <a href="https://aayushsrivastava.com" target="_blank" rel="noopener noreferrer">Aayush Srivastava</a>. All rights reserved.
+      </div>
+    </div>
+  </footer>
+
+  <script src="/static/theme.js"></script>
+  <!--
+    const themeToggleBtn = document.getElementById('themeToggle');
+    const themeIcon = document.getElementById('themeIcon');
+    const htmlEl = document.documentElement;
+
+    function applyTheme(theme) {
+      if (theme === 'dark') {
+        htmlEl.setAttribute('data-theme', 'dark');
+        themeIcon.innerHTML = '<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>';
+      } else if (theme === 'light') {
+        htmlEl.setAttribute('data-theme', 'light');
+        themeIcon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>';
+      } else {
+        htmlEl.setAttribute('data-theme', 'auto');
+        themeIcon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>';
+      }
+    }
+
+    const savedTheme = localStorage.getItem('proxyproof_theme') || 'auto';
+    applyTheme(savedTheme);
+
+    themeToggleBtn.addEventListener('click', () => {
+      const current = htmlEl.getAttribute('data-theme');
+      let next = 'dark';
+      if (current === 'dark') next = 'light';
+      else if (current === 'light') next = 'auto';
+      localStorage.setItem('proxyproof_theme', next);
+      applyTheme(next);
+    });
+  -->
+</body>
+</html>

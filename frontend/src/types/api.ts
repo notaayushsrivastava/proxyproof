@@ -173,3 +173,43 @@ export interface AuditLogItem {
   reason?: string;
   metadata_json?: Record<string, unknown>;
 }
+
+export interface Institution {
+  id: string;
+  name: string;
+  code: string;
+  domain: string;
+  contact_email: string;
+  department?: string;
+  hardware_binding_enforced: boolean;
+  attendance_window_seconds: number;
+  status: string;
+  created_at: string;
+}
+
+export interface InstitutionRegisterPayload {
+  institution_name: string;
+  institution_code: string;
+  domain: string;
+  admin_name: string;
+  admin_email: string;
+  admin_password: string;
+  department?: string;
+}
+
+export interface InstitutionRegisterResponse {
+  institution: Institution;
+  admin_user: User;
+  access_token: string;
+  token_type: string;
+  message: string;
+}
+
+export interface InstitutionOverviewStats {
+  institution: Institution;
+  total_classes: number;
+  total_faculty: number;
+  total_students: number;
+  total_sessions: number;
+  pending_device_requests: number;
+}

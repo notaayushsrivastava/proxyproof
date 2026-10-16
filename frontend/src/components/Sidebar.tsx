@@ -7,6 +7,7 @@ import {
   Modal,
   ScrollView,
   Platform,
+  Linking,
 } from 'react-native';
 import {
   X,
@@ -18,7 +19,8 @@ import {
   Wifi,
   Smartphone,
   CheckCircle2,
-  Sparkles,
+  Mail,
+  ExternalLink,
 } from 'lucide-react-native';
 import { useAuth } from '../store/auth';
 import { api, getDefaultBaseUrl } from '../services/api';
@@ -29,7 +31,7 @@ interface SidebarProps {
 }
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
-  const { user, logout, login } = useAuth();
+  const { user, logout } = useAuth();
   const [isServerHealthy, setIsServerHealthy] = useState<boolean | null>(null);
   const [isCheckingHealth, setIsCheckingHealth] = useState(false);
   const apiHost = getDefaultBaseUrl();
@@ -83,15 +85,6 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       .join('')
       .toUpperCase()
       .slice(0, 2);
-  };
-
-  const handleSwitchAccount = async (email: string) => {
-    try {
-      await login(email, 'Password123!');
-      onClose();
-    } catch (err) {
-      console.warn('Switch account failed:', err);
-    }
   };
 
   return (
@@ -238,65 +231,28 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               </View>
             </View>
 
-            {/* Quick Demo Switcher */}
+            {/* Support & Contact Section */}
             <View style={styles.sectionCard}>
               <View style={styles.sectionHeaderRow}>
-                <Sparkles size={13} color="#007AFF" strokeWidth={2.2} />
-                <Text style={styles.sectionHeader}>SWITCH DEMO ACCOUNT</Text>
+                <Mail size={14} color="#009D96" strokeWidth={2.2} />
+                <Text style={styles.sectionHeader}>SUPPORT & CONTACT</Text>
               </View>
-
               <Pressable
                 style={({ pressed }) => [
-                  styles.switchAccountBtn,
-                  user.email === 'student1@proxyproof.local' && styles.switchAccountBtnActive,
+                  styles.contactCard,
                   pressed && styles.btnPressed,
                 ]}
-                onPress={() => handleSwitchAccount('student1@proxyproof.local')}
+                onPress={() => {
+                  Linking.openURL('mailto:aayush@aayushsrivastava.com?subject=ProxyProof%20Mobile%20App%20Support');
+                }}
+                accessibilityRole="button"
+                accessibilityLabel="Contact Support at aayush@aayushsrivastava.com"
               >
-                <User size={15} color="#007AFF" strokeWidth={2.2} />
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.switchAccountName}>Alice Student</Text>
-                  <Text style={styles.switchAccountEmail}>student1@proxyproof.local</Text>
+                  <Text style={styles.contactTitle}>Need Help or Device Reset?</Text>
+                  <Text style={styles.contactEmail}>aayush@aayushsrivastava.com</Text>
                 </View>
-                {user.email === 'student1@proxyproof.local' && (
-                  <View style={styles.activeDot} />
-                )}
-              </Pressable>
-
-              <Pressable
-                style={({ pressed }) => [
-                  styles.switchAccountBtn,
-                  user.email === 'organizer@proxyproof.local' && styles.switchAccountBtnActive,
-                  pressed && styles.btnPressed,
-                ]}
-                onPress={() => handleSwitchAccount('organizer@proxyproof.local')}
-              >
-                <User size={15} color="#FF9500" strokeWidth={2.2} />
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.switchAccountName}>Turing Organizer</Text>
-                  <Text style={styles.switchAccountEmail}>organizer@proxyproof.local</Text>
-                </View>
-                {user.email === 'organizer@proxyproof.local' && (
-                  <View style={styles.activeDot} />
-                )}
-              </Pressable>
-
-              <Pressable
-                style={({ pressed }) => [
-                  styles.switchAccountBtn,
-                  user.email === 'admin@proxyproof.local' && styles.switchAccountBtnActive,
-                  pressed && styles.btnPressed,
-                ]}
-                onPress={() => handleSwitchAccount('admin@proxyproof.local')}
-              >
-                <Shield size={15} color="#FF2D55" strokeWidth={2.2} />
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.switchAccountName}>System Admin</Text>
-                  <Text style={styles.switchAccountEmail}>admin@proxyproof.local</Text>
-                </View>
-                {user.email === 'admin@proxyproof.local' && (
-                  <View style={styles.activeDot} />
-                )}
+                <ExternalLink size={16} color="#009D96" strokeWidth={2} />
               </Pressable>
             </View>
 
@@ -542,6 +498,26 @@ const styles = StyleSheet.create({
     height: 8,
     borderRadius: 4,
     backgroundColor: '#007AFF',
+  },
+  contactCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#F2F2F7',
+    padding: 14,
+    borderRadius: 14,
+  },
+  contactTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#000000',
+    letterSpacing: -0.2,
+  },
+  contactEmail: {
+    fontSize: 12,
+    color: '#009D96',
+    fontWeight: '600',
+    marginTop: 2,
   },
   logoutBtn: {
     flexDirection: 'row',
