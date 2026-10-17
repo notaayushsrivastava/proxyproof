@@ -31,7 +31,9 @@ _templates_dir = _backend_dir / "app" / "templates"
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    logger.info("Starting ProxyProof API (%s environment)", settings.ENVIRONMENT)
+    import os
+    is_serverless = os.getenv("VERCEL") == "1" or os.getenv("AWS_LAMBDA_FUNCTION_NAME") is not None
+    logger.info("Starting ProxyProof API (%s environment, serverless=%s)", settings.ENVIRONMENT, is_serverless)
     logger.info(
         "Database target: %s:%s/%s (%s)",
         settings.POSTGRES_HOST,
@@ -39,16 +41,18 @@ async def lifespan(app: FastAPI):
         settings.POSTGRES_DB,
         "docker-postgres" if settings.is_development else "remote-postgres",
     )
-    try:
-        from backend.app.db.base import Base
-        from backend.app.db.session import engine
-        Base.metadata.create_all(bind=engine)
-        with engine.begin() as conn:
-            conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS institution_id UUID REFERENCES institutions(id) ON DELETE SET NULL;"))
-            conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS department VARCHAR(128);"))
-            conn.execute(text("ALTER TABLE classes ADD COLUMN IF NOT EXISTS institution_id UUID REFERENCES institutions(id) ON DELETE SET NULL;"))
-    except Exception as e:
-        logger.warning("Auto table initialization notice: %s", e)
+    # In serverless environments, skip create_all and DDL checks to prevent cold start latency and DB connection exhaustion
+    if not is_serverless and settings.is_development:
+        try:
+            from backend.app.db.base import Base
+            from backend.app.db.session import engine
+            Base.metadata.create_all(bind=engine)
+            with engine.begin() as conn:
+                conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS institution_id UUID REFERENCES institutions(id) ON DELETE SET NULL;"))
+                conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS department VARCHAR(128);"))
+                conn.execute(text("ALTER TABLE classes ADD COLUMN IF NOT EXISTS institution_id UUID REFERENCES institutions(id) ON DELETE SET NULL;"))
+        except Exception as e:
+            logger.warning("Auto table initialization notice: %s", e)
     yield
     logger.info("Shutting down ProxyProof API")
 

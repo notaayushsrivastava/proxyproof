@@ -13,13 +13,18 @@ if "postgresql+asyncpg://" in sync_database_url:
 
 # In Vercel serverless functions, NullPool prevents exhausting database connection limits
 is_serverless = os.getenv("VERCEL") == "1" or os.getenv("AWS_LAMBDA_FUNCTION_NAME") is not None
-engine_kwargs = {"pool_pre_ping": True}
+engine_kwargs = {}
 
 if is_serverless:
     engine_kwargs["poolclass"] = NullPool
+    # With NullPool, every connection is brand new; pre-ping adds an unnecessary extra SELECT 1 roundtrip
+    engine_kwargs["pool_pre_ping"] = False
 else:
+    engine_kwargs["pool_pre_ping"] = True
     engine_kwargs["pool_size"] = 10
     engine_kwargs["max_overflow"] = 20
+
+engine_kwargs["connect_args"] = {"connect_timeout": 10}
 
 engine = create_engine(sync_database_url, **engine_kwargs)
 

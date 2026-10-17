@@ -151,16 +151,36 @@ async def validate_and_record_attendance(
         return log_and_fail("NOT_ENROLLED", "Student is not enrolled in this class", active_device.id)
 
     # 6. Validate rotating proof freshness & HMAC
-    current_server_slot = int(now.timestamp() // settings.PROOF_VALIDITY_SECONDS)
-    allowed_drift_slots = [
-        current_server_slot - settings.DRIFT_WINDOW_SLOTS,
-        current_server_slot,
-        current_server_slot + settings.DRIFT_WINDOW_SLOTS,
-    ]
+    import os
+    if settings.PAST_DRIFT_SLOTS is not None:
+        past_slots = max(0, settings.PAST_DRIFT_SLOTS)
+    elif os.getenv("VERCEL") or os.getenv("AWS_LAMBDA_FUNCTION_NAME") or settings.is_production:
+        past_slots = max(settings.DRIFT_WINDOW_SLOTS, 12)  # up to 60 seconds of tolerance on serverless/prod
+    else:
+        past_slots = settings.DRIFT_WINDOW_SLOTS
 
-    if client_time_slot not in allowed_drift_slots:
-        outcome = "STALE_PROOF" if client_time_slot < current_server_slot else "FUTURE_PROOF"
-        return log_and_fail(outcome, "Rotating BLE token has expired or is invalid for this time slot", active_device.id)
+    future_slots = (
+        settings.FUTURE_DRIFT_SLOTS
+        if settings.FUTURE_DRIFT_SLOTS is not None
+        else settings.DRIFT_WINDOW_SLOTS
+    )
+
+    current_server_slot = int(datetime.now(timezone.utc).timestamp() // settings.PROOF_VALIDITY_SECONDS)
+    min_allowed_slot = current_server_slot - past_slots
+    max_allowed_slot = current_server_slot + future_slots
+
+    if client_time_slot < min_allowed_slot:
+        return log_and_fail(
+            "STALE_PROOF",
+            "Rotating BLE token has expired or is invalid for this time slot",
+            active_device.id,
+        )
+    if client_time_slot > max_allowed_slot:
+        return log_and_fail(
+            "FUTURE_PROOF",
+            "Rotating BLE token has expired or is invalid for this time slot",
+            active_device.id,
+        )
 
     # Constant-time HMAC match
     secret_hex = target_session.beacon_secret_ciphertext
@@ -171,6 +191,23 @@ async def validate_and_record_attendance(
         time_slot=client_time_slot,
         protocol_version=protocol_version,
     )
+    # If direct verification with client_time_slot failed, check if proof matches any valid slot in the drift window
+    # (in case the key rotated right as the request was being transmitted over network)
+    if not is_proof_valid:
+        for slot_candidate in range(min_allowed_slot, max_allowed_slot + 1):
+            if slot_candidate == client_time_slot:
+                continue
+            if verify_hmac_proof(
+                candidate_proof=proof,
+                session_secret_hex=secret_hex,
+                session_id=target_session.id,
+                time_slot=slot_candidate,
+                protocol_version=protocol_version,
+            ):
+                is_proof_valid = True
+                client_time_slot = slot_candidate
+                break
+
     if not is_proof_valid:
         return log_and_fail("INVALID_PROOF", "Cryptographic session token is invalid", active_device.id)
 
