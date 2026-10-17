@@ -1,5 +1,8 @@
 # ProxyProof — Cryptographically Verified BLE Classroom Attendance
 
+  <a href="https://proxyproof.aayushsrivastava.com/">
+    <img src="https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel" alt="Deployed on Vercel" />
+  </a>
 <p align="center">
   <a href="https://github.com/notaayushsrivastava/proxyproof/releases/download/v1.0.0/proxyproof-v1.0.0.apk">
     <img src="https://img.shields.io/badge/Download%20APK-proxyproof--v1.0.0.apk-009D96?style=for-the-badge&logo=android&logoColor=white" alt="Download APK" />
