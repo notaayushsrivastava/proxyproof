@@ -201,6 +201,7 @@ export interface InstitutionOverviewStats {
   total_students: number;
   total_sessions: number;
   pending_device_requests: number;
+  broadcasters?: FacultyMember[];
 }
 
 export interface FacultyMember {

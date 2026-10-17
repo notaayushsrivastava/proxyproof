@@ -52,6 +52,7 @@ class InstitutionStatsResponse(BaseModel):
     total_students: int
     total_sessions: int
     pending_device_requests: int
+    broadcasters: list["FacultyResponse"] = []
 
 
 class FacultyCreateRequest(BaseModel):

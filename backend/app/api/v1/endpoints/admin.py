@@ -21,8 +21,10 @@ def list_device_change_requests(
     current_admin: User = Depends(get_current_admin),
     db: Session = Depends(get_db),
 ):
-    """Lists device change requests queued for admin approval."""
-    query = db.query(DeviceChangeRequest)
+    """Lists device change requests queued for admin approval, scoped to the admin's institution."""
+    query = db.query(DeviceChangeRequest).join(User, DeviceChangeRequest.student_id == User.id)
+    if current_admin.institution_id:
+        query = query.filter(User.institution_id == current_admin.institution_id)
     if status_filter:
         query = query.filter(DeviceChangeRequest.status == status_filter)
     return query.order_by(DeviceChangeRequest.created_at.desc()).all()

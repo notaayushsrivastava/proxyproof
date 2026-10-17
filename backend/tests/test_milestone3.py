@@ -4,10 +4,10 @@ from fastapi.testclient import TestClient
 from backend.app.db.seed import DEFAULT_DEV_PASSWORD
 
 
-def get_token(client: TestClient, email: str) -> str:
+def get_token(client: TestClient, email: str, password: str = DEFAULT_DEV_PASSWORD) -> str:
     response = client.post(
         "/api/v1/auth/login",
-        json={"email": email, "password": DEFAULT_DEV_PASSWORD},
+        json={"email": email, "password": password},
     )
     assert response.status_code == 200
     return response.json()["access_token"]
@@ -18,7 +18,7 @@ def test_auth_login_roles(client: TestClient):
     # 1. Admin login
     res_admin = client.post(
         "/api/v1/auth/login",
-        json={"email": "admin@proxyproof.local", "password": DEFAULT_DEV_PASSWORD},
+        json={"email": "admin@university.local", "password": "AdminPass123!"},
     )
     assert res_admin.status_code == 200
     data_admin = res_admin.json()
@@ -28,7 +28,7 @@ def test_auth_login_roles(client: TestClient):
     # 2. Organizer login
     res_org = client.post(
         "/api/v1/auth/login",
-        json={"email": "organizer@proxyproof.local", "password": DEFAULT_DEV_PASSWORD},
+        json={"email": "smith@university.local", "password": "ProfPass123!"},
     )
     assert res_org.status_code == 200
     assert res_org.json()["user"]["role"] == "organizer"
@@ -36,19 +36,19 @@ def test_auth_login_roles(client: TestClient):
     # 3. Student login
     res_student = client.post(
         "/api/v1/auth/login",
-        json={"email": "student1@proxyproof.local", "password": DEFAULT_DEV_PASSWORD},
+        json={"email": "alice@university.local", "password": "StudentPass123!"},
     )
     assert res_student.status_code == 200
     data_student = res_student.json()
     assert data_student["user"]["role"] == "student"
-    assert data_student["user"]["student_profile"]["student_number"] == "CS2026001"
+    assert data_student["user"]["student_profile"]["student_number"] == "2026-CS-001"
 
 
 def test_auth_invalid_credentials(client: TestClient):
     """Verifies rejection of invalid password."""
     response = client.post(
         "/api/v1/auth/login",
-        json={"email": "admin@proxyproof.local", "password": "WrongPassword!"},
+        json={"email": "admin@university.local", "password": "WrongPassword!"},
     )
     assert response.status_code == 401
     assert "Incorrect email or password" in response.json()["detail"]
@@ -56,13 +56,13 @@ def test_auth_invalid_credentials(client: TestClient):
 
 def test_get_current_user_profile(client: TestClient):
     """Verifies /api/v1/auth/me returns the authenticated profile."""
-    token = get_token(client, "student1@proxyproof.local")
+    token = get_token(client, "alice@university.local", "StudentPass123!")
     response = client.get(
         "/api/v1/auth/me",
         headers={"Authorization": f"Bearer {token}"},
     )
     assert response.status_code == 200
-    assert response.json()["email"] == "student1@proxyproof.local"
+    assert response.json()["email"] == "alice@university.local"
 
 
 def test_device_registration_and_change_approval_flow(client: TestClient, db_session: Session):
@@ -77,20 +77,24 @@ def test_device_registration_and_change_approval_flow(client: TestClient, db_ses
     from backend.app.models.enums import UserRole, AccountStatus
     from backend.app.core.security import hash_password
 
-    unique_email = f"device_flow_{uuid.uuid4().hex[:6]}@proxyproof.local"
+    # Find the seeded university institution so fresh student belongs to it
+    admin_user = db_session.query(User).filter(User.email == "admin@university.local").first()
+
+    unique_email = f"device_flow_{uuid.uuid4().hex[:6]}@university.local"
     fresh_student = User(
         id=uuid.uuid4(),
         email=unique_email,
         password_hash=hash_password(DEFAULT_DEV_PASSWORD),
         role=UserRole.STUDENT,
         full_name="Device Flow Student",
+        institution_id=admin_user.institution_id if admin_user else None,
         account_status=AccountStatus.ACTIVE,
     )
     db_session.add(fresh_student)
     db_session.commit()
 
     token_student3 = get_token(client, unique_email)
-    token_admin = get_token(client, "admin@proxyproof.local")
+    token_admin = get_token(client, "admin@university.local", "AdminPass123!")
 
     # 1. First device -> should be auto-activated
     res_dev1 = client.post(
@@ -168,11 +172,11 @@ def test_classes_and_roster_permissions(client: TestClient):
     1. Organizer sees their classes.
     2. Student sees only enrolled classes.
     3. Student cannot add members to roster (403 Forbidden).
-    4. Organizer can add Student3 to CS401, then remove them.
+    4. Organizer can add Bob to CS401-2026, then remove them.
     """
-    token_org = get_token(client, "organizer@proxyproof.local")
-    token_student1 = get_token(client, "student1@proxyproof.local")
-    token_student3 = get_token(client, "student3@proxyproof.local")
+    token_org = get_token(client, "smith@university.local", "ProfPass123!")
+    token_student1 = get_token(client, "alice@university.local", "StudentPass123!")
+    token_student2 = get_token(client, "bob@university.local", "StudentPass123!")
 
     # Organizer lists classes
     res_org_classes = client.get(
@@ -184,7 +188,7 @@ def test_classes_and_roster_permissions(client: TestClient):
     assert len(classes) >= 1
     class_id = classes[0]["id"]
 
-    # Student 1 (enrolled) lists classes -> sees class
+    # Student 1 (Alice, enrolled) lists classes -> sees class
     res_s1_classes = client.get(
         "/api/v1/classes",
         headers={"Authorization": f"Bearer {token_student1}"},
@@ -192,13 +196,13 @@ def test_classes_and_roster_permissions(client: TestClient):
     assert res_s1_classes.status_code == 200
     assert any(c["id"] == class_id for c in res_s1_classes.json())
 
-    # Student 3 (not yet enrolled) lists classes -> does NOT see this class
-    res_s3_classes = client.get(
+    # Student 2 (Bob, not yet enrolled) lists classes -> does NOT see this class
+    res_s2_classes = client.get(
         "/api/v1/classes",
-        headers={"Authorization": f"Bearer {token_student3}"},
+        headers={"Authorization": f"Bearer {token_student2}"},
     )
-    assert res_s3_classes.status_code == 200
-    assert not any(c["id"] == class_id for c in res_s3_classes.json())
+    assert res_s2_classes.status_code == 200
+    assert not any(c["id"] == class_id for c in res_s2_classes.json())
 
     # Student cannot view or modify roster
     res_unauth = client.get(
@@ -215,24 +219,24 @@ def test_classes_and_roster_permissions(client: TestClient):
     assert res_roster.status_code == 200
     initial_count = len(res_roster.json())
 
-    # Get student3 id
-    s3_profile = client.get(
+    # Get Bob's id
+    bob_profile = client.get(
         "/api/v1/auth/me",
-        headers={"Authorization": f"Bearer {token_student3}"},
+        headers={"Authorization": f"Bearer {token_student2}"},
     ).json()
-    student3_id = s3_profile["id"]
+    bob_id = bob_profile["id"]
 
-    # Organizer enrolls Student3
+    # Organizer enrolls Bob
     res_add = client.post(
         f"/api/v1/classes/{class_id}/members",
-        json={"student_id": student3_id},
+        json={"student_id": bob_id},
         headers={"Authorization": f"Bearer {token_org}"},
     )
     assert res_add.status_code == 201
 
-    # Organizer removes Student3
+    # Organizer removes Bob
     res_remove = client.delete(
-        f"/api/v1/classes/{class_id}/members/{student3_id}",
+        f"/api/v1/classes/{class_id}/members/{bob_id}",
         headers={"Authorization": f"Bearer {token_org}"},
     )
     assert res_remove.status_code == 200

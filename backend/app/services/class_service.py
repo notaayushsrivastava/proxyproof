@@ -21,11 +21,14 @@ def create_class(
             detail=f"Class code '{code}' is already in use",
         )
 
+    organizer = db.query(User).filter(User.id == organizer_id).first()
+
     new_class = Class(
         id=uuid.uuid4(),
         name=name,
         code=code,
         owner_organizer_id=organizer_id,
+        institution_id=organizer.institution_id if organizer else None,
     )
     db.add(new_class)
     db.flush()
@@ -44,9 +47,12 @@ def create_class(
 
 
 def get_classes_for_user(db: Session, user: User) -> List[Class]:
-    """Returns classes scoped strictly to user role and assignments."""
+    """Returns classes scoped strictly to user role, institution, and assignments."""
     if user.role == UserRole.ADMIN:
-        return db.query(Class).order_by(Class.created_at.desc()).all()
+        query = db.query(Class)
+        if user.institution_id:
+            query = query.filter(Class.institution_id == user.institution_id)
+        return query.order_by(Class.created_at.desc()).all()
     elif user.role == UserRole.ORGANIZER:
         return (
             db.query(Class)

@@ -174,6 +174,8 @@ def get_institution_overview(
 ):
     """Provides high-level management telemetry across classes, faculty, students, and device binding queues."""
     institution = db.query(Institution).filter(Institution.admin_user_id == current_admin.id).first()
+    if not institution and current_admin.institution_id:
+        institution = db.query(Institution).filter(Institution.id == current_admin.institution_id).first()
     if not institution:
         institution = db.query(Institution).order_by(Institution.created_at.desc()).first()
 
@@ -181,9 +183,9 @@ def get_institution_overview(
         # Create a default system institution if none exists yet
         institution = Institution(
             id=uuid.uuid4(),
-            name="ProxyProof Academic System",
-            code="PROXYPROOF",
-            domain="proxyproof.local",
+            name="University of Technology",
+            code="UNIV",
+            domain="university.local",
             contact_email=current_admin.email,
             admin_user_id=current_admin.id,
             hardware_binding_enforced=True,
@@ -194,13 +196,44 @@ def get_institution_overview(
         db.commit()
         db.refresh(institution)
 
-    total_classes = db.query(Class).count()
-    total_faculty = db.query(User).filter(User.role == UserRole.ORGANIZER).count()
-    total_students = db.query(User).filter(User.role == UserRole.STUDENT).count()
-    total_sessions = db.query(AttendanceSession).count()
-    pending_devices = db.query(DeviceChangeRequest).filter(
-        DeviceChangeRequest.status == DeviceRequestStatus.PENDING
-    ).count()
+    # Strictly scope counts to the admin's institution
+    total_classes = db.query(Class).filter(Class.institution_id == institution.id).count()
+    faculty_members = (
+        db.query(User)
+        .filter(
+            User.role == UserRole.ORGANIZER,
+            (User.institution_id == institution.id) | (User.email.ilike(f"%@{institution.domain}")),
+        )
+        .order_by(User.created_at.desc())
+        .all()
+    )
+    total_faculty = len(faculty_members)
+
+    total_students = (
+        db.query(User)
+        .filter(
+            User.role == UserRole.STUDENT,
+            (User.institution_id == institution.id) | (User.email.ilike(f"%@{institution.domain}")),
+        )
+        .count()
+    )
+
+    total_sessions = (
+        db.query(AttendanceSession)
+        .join(Class, AttendanceSession.class_id == Class.id)
+        .filter(Class.institution_id == institution.id)
+        .count()
+    )
+
+    pending_devices = (
+        db.query(DeviceChangeRequest)
+        .join(User, DeviceChangeRequest.student_id == User.id)
+        .filter(
+            DeviceChangeRequest.status == DeviceRequestStatus.PENDING,
+            (User.institution_id == institution.id) | (User.email.ilike(f"%@{institution.domain}")),
+        )
+        .count()
+    )
 
     return InstitutionStatsResponse(
         institution=institution,
@@ -209,6 +242,7 @@ def get_institution_overview(
         total_students=total_students,
         total_sessions=total_sessions,
         pending_device_requests=pending_devices,
+        broadcasters=[FacultyResponse.model_validate(f) for f in faculty_members],
     )
 
 

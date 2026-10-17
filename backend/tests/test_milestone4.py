@@ -8,10 +8,10 @@ from fastapi.testclient import TestClient
 from backend.app.db.seed import DEFAULT_DEV_PASSWORD
 
 
-def get_token(client: TestClient, email: str) -> str:
+def get_token(client: TestClient, email: str, password: str = DEFAULT_DEV_PASSWORD) -> str:
     response = client.post(
         "/api/v1/auth/login",
-        json={"email": email, "password": DEFAULT_DEV_PASSWORD},
+        json={"email": email, "password": password},
     )
     assert response.status_code == 200
     return response.json()["access_token"]
@@ -24,10 +24,9 @@ def derive_proof(session_secret_hex: str, session_id: uuid.UUID, slot: int, vers
 
 
 def test_session_lifecycle_and_attendance_validation(client: TestClient):
-    token_org = get_token(client, "organizer@proxyproof.local")
-    token_s1 = get_token(client, "student1@proxyproof.local")
-    token_s2 = get_token(client, "student2@proxyproof.local")
-    token_s3 = get_token(client, "student3@proxyproof.local")
+    token_org = get_token(client, "smith@university.local", "ProfPass123!")
+    token_s1 = get_token(client, "alice@university.local", "StudentPass123!")
+    token_s2 = get_token(client, "bob@university.local", "StudentPass123!")
 
     # 1. Organizer gets their class
     res_cls = client.get("/api/v1/classes", headers={"Authorization": f"Bearer {token_org}"})
@@ -47,7 +46,7 @@ def test_session_lifecycle_and_attendance_validation(client: TestClient):
     assert len(secret_hex) == 64  # 32 bytes hex
     assert session_data["status"] == "active"
 
-    # 3. Student 1 (enrolled) views active session
+    # 3. Student 1 (Alice, enrolled) views active session
     res_s1_active = client.get("/api/v1/sessions/active", headers={"Authorization": f"Bearer {token_s1}"})
     assert res_s1_active.status_code == 200
     active_sessions = res_s1_active.json()
@@ -55,10 +54,10 @@ def test_session_lifecycle_and_attendance_validation(client: TestClient):
     # Ensure session secret is NOT leaked to student
     assert "session_secret" not in active_sessions[0]
 
-    # Student 3 (not enrolled) does NOT see active session
-    res_s3_active = client.get("/api/v1/sessions/active", headers={"Authorization": f"Bearer {token_s3}"})
-    assert res_s3_active.status_code == 200
-    assert not any(s["id"] == str(session_id) for s in res_s3_active.json())
+    # Student 2 (Bob, unenrolled) does NOT see active session
+    res_s2_active = client.get("/api/v1/sessions/active", headers={"Authorization": f"Bearer {token_s2}"})
+    assert res_s2_active.status_code == 200
+    assert not any(s["id"] == str(session_id) for s in res_s2_active.json())
 
     # 4. Successful attendance marking for Student 1
     current_slot = int(datetime.now(timezone.utc).timestamp() // 5)
@@ -110,7 +109,7 @@ def test_session_lifecycle_and_attendance_validation(client: TestClient):
     assert res_retry_new.status_code == 200
     assert res_retry_new.json()["outcome_code"] == "ALREADY_MARKED"
 
-    # 7. Stale token rejection
+    # 7. Stale token rejection (tested with enrolled Student 1)
     stale_slot = current_slot - 5
     stale_proof = derive_proof(secret_hex, session_id, stale_slot)
     res_stale = client.post(
@@ -121,7 +120,7 @@ def test_session_lifecycle_and_attendance_validation(client: TestClient):
             "request_id": str(uuid.uuid4()),
             "rssi_median": -65,
         },
-        headers={"Authorization": f"Bearer {token_s2}"},
+        headers={"Authorization": f"Bearer {token_s1}"},
     )
     assert res_stale.status_code == 400
     assert res_stale.json()["detail"]["outcome_code"] == "STALE_PROOF"
@@ -137,7 +136,7 @@ def test_session_lifecycle_and_attendance_validation(client: TestClient):
             "request_id": str(uuid.uuid4()),
             "rssi_median": -65,
         },
-        headers={"Authorization": f"Bearer {token_s2}"},
+        headers={"Authorization": f"Bearer {token_s1}"},
     )
     assert res_future.status_code == 400
     assert res_future.json()["detail"]["outcome_code"] == "FUTURE_PROOF"
@@ -152,7 +151,7 @@ def test_session_lifecycle_and_attendance_validation(client: TestClient):
             "request_id": str(uuid.uuid4()),
             "rssi_median": -65,
         },
-        headers={"Authorization": f"Bearer {token_s2}"},
+        headers={"Authorization": f"Bearer {token_s1}"},
     )
     assert res_invalid.status_code == 400
     assert res_invalid.json()["detail"]["outcome_code"] == "INVALID_PROOF"
@@ -169,12 +168,12 @@ def test_session_lifecycle_and_attendance_validation(client: TestClient):
             "request_id": str(uuid.uuid4()),
             "rssi_median": -85,
         },
-        headers={"Authorization": f"Bearer {token_s2}"},
+        headers={"Authorization": f"Bearer {token_s1}"},
     )
     assert res_low_rssi.status_code == 400
     assert res_low_rssi.json()["detail"]["outcome_code"] == "BELOW_PROXIMITY_THRESHOLD"
 
-    # 11. Unenrolled student rejection
+    # 11. Unenrolled student rejection (Bob is unenrolled from CS401-2026)
     current_slot = int(datetime.now(timezone.utc).timestamp() // 5)
     valid_proof = derive_proof(secret_hex, session_id, current_slot)
 
@@ -186,13 +185,20 @@ def test_session_lifecycle_and_attendance_validation(client: TestClient):
             "request_id": str(uuid.uuid4()),
             "rssi_median": -65,
         },
-        headers={"Authorization": f"Bearer {token_s3}"},
+        headers={"Authorization": f"Bearer {token_s2}"},
     )
     assert res_unenrolled.status_code == 400
     assert res_unenrolled.json()["detail"]["outcome_code"] == "NOT_ENROLLED"
 
-    # 12. Manual mark by organizer for Student 2
+    # 12. Organizer enrolls Student 2 (Bob) and performs manual mark
     student2_id = client.get("/api/v1/auth/me", headers={"Authorization": f"Bearer {token_s2}"}).json()["id"]
+    res_enroll_bob = client.post(
+        f"/api/v1/classes/{class_id}/members",
+        json={"student_id": student2_id},
+        headers={"Authorization": f"Bearer {token_org}"},
+    )
+    assert res_enroll_bob.status_code == 201
+
     res_manual = client.post(
         f"/api/v1/sessions/{session_id}/attendance/manual",
         json={

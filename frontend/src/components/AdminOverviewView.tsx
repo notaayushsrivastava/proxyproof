@@ -17,6 +17,7 @@ import {
   FileText,
   Clock,
   CheckCircle2,
+  Radio,
 } from 'lucide-react-native';
 import { api } from '../services/api';
 import { Institution, InstitutionOverviewStats } from '../types/api';
@@ -156,6 +157,64 @@ export function AdminOverviewView() {
               <Text style={styles.statLabel}>Device Queue</Text>
               <Text style={styles.statSub}>Needs approval</Text>
             </View>
+          </View>
+
+          {/* Authorized Broadcasters under this Institution */}
+          <View style={styles.card}>
+            <View style={styles.cardHeaderRow}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <Radio size={18} color="#FF9500" strokeWidth={2.4} />
+                <Text style={styles.cardTitle}>Authorized Broadcasters</Text>
+              </View>
+              <View style={styles.broadcasterCountBadge}>
+                <Text style={styles.broadcasterCountText}>
+                  {overview?.broadcasters?.length ?? 0} Registered
+                </Text>
+              </View>
+            </View>
+            <Text style={styles.sectionSubtitle}>
+              Faculty members authorized to broadcast attendance beacons on campus under {institution?.name || 'this institution'}.
+            </Text>
+
+            {overview?.broadcasters && overview.broadcasters.length > 0 ? (
+              <View style={styles.broadcasterList}>
+                {overview.broadcasters.map((broadcaster) => (
+                  <View key={broadcaster.id} style={styles.broadcasterRow}>
+                    <View style={styles.broadcasterAvatar}>
+                      <Text style={styles.broadcasterAvatarText}>
+                        {broadcaster.full_name
+                          .split(' ')
+                          .map((n) => n[0])
+                          .join('')
+                          .toUpperCase()
+                          .slice(0, 2)}
+                      </Text>
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.broadcasterName}>{broadcaster.full_name}</Text>
+                      <Text style={styles.broadcasterEmail}>{broadcaster.email}</Text>
+                      {broadcaster.department ? (
+                        <Text style={styles.broadcasterDept}>{broadcaster.department}</Text>
+                      ) : null}
+                    </View>
+                    <View style={styles.broadcasterBadge}>
+                      <View style={styles.beaconPulseDot} />
+                      <Text style={styles.broadcasterBadgeText}>BROADCASTER</Text>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            ) : (
+              <View style={styles.emptyBroadcastersBox}>
+                <Radio size={24} color="#8E8E93" strokeWidth={1.8} />
+                <Text style={styles.emptyBroadcastersText}>
+                  No faculty broadcasters registered yet under this institution.
+                </Text>
+                <Text style={styles.emptyBroadcastersSub}>
+                  Use the Faculty tab to add instructors.
+                </Text>
+              </View>
+            )}
           </View>
 
           {/* Institutional Policy Controls */}
@@ -446,5 +505,108 @@ const styles = StyleSheet.create({
   },
   btnPressed: {
     opacity: 0.7,
+  },
+  cardHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+  },
+  broadcasterCountBadge: {
+    backgroundColor: 'rgba(255, 149, 0, 0.12)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+  },
+  broadcasterCountText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#FF9500',
+  },
+  sectionSubtitle: {
+    fontSize: 12,
+    color: '#8E8E93',
+    marginBottom: 14,
+    lineHeight: 16,
+  },
+  broadcasterList: {
+    gap: 10,
+  },
+  broadcasterRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    padding: 12,
+    backgroundColor: '#F8F9FB',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.04)',
+  },
+  broadcasterAvatar: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: '#0B284C',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  broadcasterAvatarText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '800',
+  },
+  broadcasterName: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#1C1C1E',
+  },
+  broadcasterEmail: {
+    fontSize: 11.5,
+    color: '#636366',
+    marginTop: 1,
+  },
+  broadcasterDept: {
+    fontSize: 10.5,
+    color: '#009D96',
+    fontWeight: '600',
+    marginTop: 2,
+  },
+  broadcasterBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: 'rgba(255, 149, 0, 0.12)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  beaconPulseDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#FF9500',
+  },
+  broadcasterBadgeText: {
+    fontSize: 9.5,
+    fontWeight: '800',
+    color: '#FF9500',
+    letterSpacing: 0.3,
+  },
+  emptyBroadcastersBox: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 24,
+    gap: 6,
+  },
+  emptyBroadcastersText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#1C1C1E',
+    textAlign: 'center',
+  },
+  emptyBroadcastersSub: {
+    fontSize: 11.5,
+    color: '#8E8E93',
+    textAlign: 'center',
   },
 });
